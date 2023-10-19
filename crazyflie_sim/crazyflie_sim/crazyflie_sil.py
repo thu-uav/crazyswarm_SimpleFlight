@@ -166,9 +166,30 @@ class CrazyflieSIL:
 
     def cmdFullState(self, pos, vel, acc, yaw, omega):
         self.mode = CrazyflieSIL.MODE_LOW_FULLSTATE
-        self.state.position.x = pos[0]
-        self.state.position.y = pos[1]
-        self.state.position.z = pos[2]
+        self.setpoint.position.x = pos[0]
+        self.setpoint.position.y = pos[1]
+        self.setpoint.position.z = pos[2]
+        self.setpoint.velocity.x = vel[0]
+        self.setpoint.velocity.y = vel[1]
+        self.setpoint.velocity.z = vel[2]
+        self.setpoint.attitude.yaw = np.degrees(yaw)
+        self.setpoint.attitudeRate.roll = np.degrees(omega[0])
+        self.setpoint.attitudeRate.pitch = np.degrees(omega[1])
+        self.setpoint.attitudeRate.yaw = np.degrees(omega[2])
+        self.setpoint.mode.x = firm.modeAbs
+        self.setpoint.mode.y = firm.modeAbs
+        self.setpoint.mode.z = firm.modeAbs
+        self.setpoint.mode.roll = firm.modeDisable
+        self.setpoint.mode.pitch = firm.modeDisable
+        self.setpoint.mode.yaw = firm.modeAbs
+        self.setpoint.mode.quat = firm.modeDisable
+        self.setpoint.acceleration.x = acc[0]
+        self.setpoint.acceleration.y = acc[1]
+        self.setpoint.acceleration.z = acc[2]
+                
+        self.cmdHl_pos = copy_svec(self.setpoint.position)
+        self.cmdHl_vel = copy_svec(self.setpoint.velocity)
+        self.cmdHl_yaw = yaw
 
         self.state.velocity.x = vel[0]
         self.state.velocity.y = vel[1]
