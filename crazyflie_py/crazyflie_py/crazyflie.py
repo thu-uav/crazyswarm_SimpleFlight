@@ -155,7 +155,8 @@ class Crazyflie:
         # self.cmdStopPublisher = rospy.Publisher(prefix + "/cmd_stop", std_msgs.msg.Empty, queue_size=1)
 
         # self.cmdVelPublisher = rospy.Publisher(prefix + "/cmd_vel", geometry_msgs.msg.Twist, queue_size=1)
-
+        self.cmdVelPublisher = node.create_publisher(Twist, prefix + "/cmd_vel_legacy", 1)
+        
         self.cmdPositionPublisher = node.create_publisher(Position, prefix + "/cmd_position", 1)
         self.cmdPositionMsg = Position()
         self.cmdPositionMsg.header.frame_id = "/world"
@@ -429,26 +430,26 @@ class Crazyflie:
     #     position, quaternion = self.tf.lookupTransform("/world", "/cf" + str(self.id), rospy.Time(0))
     #     return np.array(position)
 
-    # def getParam(self, name):
-    #     """Returns the current value of the onboard named parameter.
+    def getParam(self, name):
+        """Returns the current value of the onboard named parameter.
 
-    #     Parameters are named values of various primitive C types that control
-    #     the firmware's behavior. For more information, see
-    #     https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/userguides/logparam/.
+        Parameters are named values of various primitive C types that control
+        the firmware's behavior. For more information, see
+        https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/userguides/logparam/.
 
-    #     Parameters are read at system startup over the radio and cached.
-    #     The ROS launch file can also be used to set parameter values at startup.
-    #     Subsequent calls to :meth:`setParam()` will update the cached value.
-    #     However, if the parameter changes for any other reason, the cached value
-    #     might become stale. This situation is not common.
+        Parameters are read at system startup over the radio and cached.
+        The ROS launch file can also be used to set parameter values at startup.
+        Subsequent calls to :meth:`setParam()` will update the cached value.
+        However, if the parameter changes for any other reason, the cached value
+        might become stale. This situation is not common.
 
-    #     Args:
-    #         name (str): The parameter's name.
+        Args:
+            name (str): The parameter's name.
 
-    #     Returns:
-    #         value (Any): The parameter's value.
-    #     """
-    #     return rospy.get_param(self.prefix + "/" + name)
+        Returns:
+            value (Any): The parameter's value.
+        """
+        return rospy.get_param(self.prefix + "/" + name)
 
     def setParam(self, name, value):
         """Changes the value of the given parameter.
@@ -562,7 +563,7 @@ class Crazyflie:
     #     """
     #     self.cmdStopPublisher.publish(std_msgs.msg.Empty())
 
-    # def cmdVel(self, roll, pitch, yawrate, thrust):
+    def cmdVel(self, roll, pitch, yawrate, thrust):
     #     """Sends a streaming command of the "easy mode" manual control inputs.
 
     #     The (absolute roll & pitch, yaw rate, thrust) inputs are typically
@@ -590,12 +591,12 @@ class Crazyflie:
     #         thrust (float): Thrust magnitude. Non-meaningful units in [0, 2^16),
     #             where the maximum value corresponds to maximum thrust.
     #     """
-    #     msg = geometry_msgs.msg.Twist()
-    #     msg.linear.x = pitch
-    #     msg.linear.y = roll
-    #     msg.angular.z = yawrate
-    #     msg.linear.z = thrust
-    #     self.cmdVelPublisher.publish(msg)
+        msg = Twist()
+        msg.linear.x = pitch
+        msg.linear.y = roll
+        msg.angular.z = yawrate
+        msg.linear.z = thrust
+        self.cmdVelPublisher.publish(msg)
 
     def cmdPosition(self, pos, yaw = 0.):
         """Sends a streaming command of absolute position and yaw setpoint.

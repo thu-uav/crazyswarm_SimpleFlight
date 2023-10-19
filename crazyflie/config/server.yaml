@@ -26,7 +26,7 @@
           fps: 1           # frames per second
           cycle_bg: false  # if true, pictures will cycle through different environemt background images (useful for synthetic image generation). Otherwise a single environment background image will be used
           cf_cameras:      # names of crazyflies with cameras on them if enabled in `crazyflies.yaml`
-            cf231:
+            cf8:
               calibration:
                 tvec: [0,0,0]
                 rvec: [1.2092,-1.2092,1.2092]   # 0 deg tilt (cameras looks in front of crazyflie)

@@ -802,25 +802,26 @@ class CrazyflieServer(Node):
            poses topic to send through the external position
            to the crazyflie 
         """
-
         poses = msg.poses
         for pose in poses:
             name = pose.name
             x = pose.pose.position.x
             y = pose.pose.position.y
             z = pose.pose.position.z
-            quat = pose.pose.orientation
+            qx = pose.pose.orientation.x
+            qy = pose.pose.orientation.y
+            qz = pose.pose.orientation.z
+            qw = pose.pose.orientation.w
 
             if name in self.uri_dict.keys():
                 uri = self.uri_dict[name]
-                #self.get_logger().info(f"{uri}: send extpos {x}, {y}, {z} to {name}")
-                if isnan(quat.x):
+                # self.get_logger().info(f"{uri}: send extpos {qx}, {qy}, {qz}, {qw} to {name}")
+                if isnan(qx):
                     self.swarm._cfs[uri].cf.extpos.send_extpos(
                         x, y, z)
                 else:
                     self.swarm._cfs[uri].cf.extpos.send_extpose(
-                        x, y, z, quat.x, quat.y, quat.z, quat.w)
-
+                        x, y, z, qx, qy, qz, qw)
 
     def _cmd_vel_legacy_changed(self, msg, uri=""):
         """

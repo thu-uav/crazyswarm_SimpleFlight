@@ -156,6 +156,7 @@ class CrazyflieSIL:
             traj.timescale = timescale
             startfrom = self.cmdHl_pos
             firm.plan_start_trajectory(self.planner, traj, reverse, relative, startfrom)
+            
 
     # def notifySetpointsStop(self, remainValidMillisecs=100):
     #     # No-op - the real Crazyflie prioritizes streaming setpoints over
@@ -165,12 +166,30 @@ class CrazyflieSIL:
 
     def cmdFullState(self, pos, vel, acc, yaw, omega):
         self.mode = CrazyflieSIL.MODE_LOW_FULLSTATE
-        self.setState.pos = firm.mkvec(*pos)
-        self.setState.vel = firm.mkvec(*vel)
-        self.setState.acc = firm.mkvec(*acc)
-        self.setState.yaw = yaw
-        self.setState.omega = firm.mkvec(*omega)
+        self.state.position.x = pos[0]
+        self.state.position.y = pos[1]
+        self.state.position.z = pos[2]
 
+        self.state.velocity.x = vel[0]
+        self.state.velocity.y = vel[1]
+        self.state.velocity.z = vel[2]
+
+        # rpy = np.degrees(rowan.to_euler(state.quat, convention='xyz'))
+        # Note, legacy coordinate system, so invert pitch
+        self.state.attitude.roll = 0
+        self.state.attitude.pitch = 0
+        self.state.attitude.yaw = yaw
+        quat = rowan.from_euler(0, 0, yaw)
+        self.state.attitudeQuaternion.w = quat[0]
+        self.state.attitudeQuaternion.x = quat[1]
+        self.state.attitudeQuaternion.y = quat[2]
+        self.state.attitudeQuaternion.z = quat[3]
+
+        # omega is part of sensors, not of the state
+        self.sensors.gyro.x = np.degrees(omega[0])
+        self.sensors.gyro.y = np.degrees(omega[1])
+        self.sensors.gyro.z = np.degrees(omega[2])        
+               
     # def cmdPosition(self, pos, yaw = 0):
     #     self.mode = CrazyflieSIL.MODE_LOW_POSITION
     #     self.setState.pos = firm.mkvec(*pos)

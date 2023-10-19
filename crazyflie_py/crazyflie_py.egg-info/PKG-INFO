@@ -1,0 +1,10 @@
+Metadata-Version: 1.2
+Name: crazyflie-py
+Version: 2.0.0
+Summary: Simple Python interface for Crazyswarm2
+Home-page: UNKNOWN
+Maintainer: Wolfgang Hönig, Kimberly McGuire
+Maintainer-email: hoenig@tu-berlin.de
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN

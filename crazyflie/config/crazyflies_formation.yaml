@@ -1,47 +1,33 @@
 # named list of all robots
 robots:
-  cf7:
-    enabled: true
-    uri: radio://0/80/2M/E7E7E7E707
-    initial_position: [0.0, 0.0, 0.0]
+  # cf1:
+  #   enabled: false
+  #   uri: radio://0/80/2M/E7E7E7E701
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+  # cf4:
+  #   enabled: false
+  #   uri: radio://0/80/2M/E7E7E7E704
+  #   initial_position: [0.0, 1.0, 0.0]
+  #   type: cf21  # see robot_types
+  # cf7:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E707
+  #   initial_position: [1.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+  cf8:
+    enabled: false
+    uri: radio://0/80/2M/E7E7E7E708
+    initial_position: [0.0, -1.0, 0.0]
     type: cf21  # see robot_types
 
-  # cf4:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E704
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-    
-
-  # cf6:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E706
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf2:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E702
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-  # cf3:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E703
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-  # cf4:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E704
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-  
 # Definition of the various robot types
 robot_types:
   cf21:
     motion_capture:
       enabled: true
       # only if enabled; see motion_capture.yaml
-      marker: default
+      marker: test
       dynamics: default
     big_quad: false
     battery:
@@ -66,29 +52,20 @@ all:
   # robots/drone_name to set per drone)
   firmware_logging:
     enabled: true
-    # default_topics:
+    default_topics:
      # remove to disable default topic
-      # pose:
-      #   frequency: 100 # Hz
+      pose:
+        frequency: 100 # Hz
     custom_topics:
-      pos:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z"]
-      quat:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
-      vel:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
-      # motors:
-      #   frequency: 100
-      #   vars: ['motors.m1', 'motors.m2', 'motors.m3', 'motors.m4']
-      # thrust:
-      #   frequency: 100
-      #   vars: ["controller.cmd_thrust", "controller.actuatorThrust"]
-      # rpy:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      flow:
+        frequency: 10 # Hz
+        vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z", "pm.vbat"]
+      target:
+        frequency: 10 # Hz
+        vars: ["ctrltarget.x", "ctrltarget.y", "ctrltarget.z" ]
+    #  topic_name2:
+    #    frequency: 1 # Hz
+    #    vars: ["stabilizer.roll", "stabilizer.pitch", "stabilizer.yaw"]
   # firmware parameters for all drones (use robot_types/type_name to set per type, or
   # robots/drone_name to set per drone)
   firmware_params:
@@ -96,7 +73,7 @@ all:
       enHighLevel: 1
     stabilizer:
       estimator: 2 # 1: complementary, 2: kalman
-      controller: 2 # 1: PID, 2: mellinger
+      controller: 1 # 1: PID, 2: mellinger
     # ring:
     #   effect: 16 # 6: double spinner, 7: solid color, 16: packetRate
     #   solidBlue: 255 # if set to solid color

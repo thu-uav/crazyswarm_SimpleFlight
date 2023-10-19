@@ -1,9 +1,9 @@
 /motion_capture_tracking:
   ros__parameters:
-    type: "optitrack"
-    hostname: "130.149.82.37"
+    type: "vrpn" # vicon,optitrack,qualisys,vrpn
+    hostname: "169.254.128.169" #"130.149.82.37"
 
-    mode: "libobjecttracker" # one of motionCapture,libRigidBodyTracker
+    # mode: "libRigidBodyTracker" # one of motionCapture,libRigidBodyTracker
 
     topics:
       poses:
@@ -44,6 +44,13 @@
           p1: [-0.0113941,0.00945842,0.0984811]
           p2: [-0.0306277,0.0514879,0.0520456]
           p3: [0.0535816,-0.0400775,0.0432799]
+      test:
+        offset: [0.0, -0.01, -0.04]
+        points:
+          p0: [0.0177184,0.0139654,0.0557585]
+          p1: [-0.0262914,0.0509139,0.0402475]
+          p2: [-0.0328889,-0.02757,0.0390601]
+          p3: [0.0431307,-0.0331216,0.0388839]
 
     dynamics_configurations:
       default:

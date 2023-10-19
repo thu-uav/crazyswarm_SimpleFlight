@@ -3,3 +3,7 @@ crazyswarm2_sim_webots/
 *.pyc
 *.o
 *~
+wandb/
+*.csv
+outputs/
+*.pt

@@ -984,6 +984,7 @@ private:
 
   void posesChanged(const NamedPoseArray::SharedPtr msg)
   {
+    RCLCPP_INFO(logger_, "posesChanged()");
     mocap_data_received_timepoints_.emplace_back(std::chrono::steady_clock::now());
 
     // Here, we send all the poses to all CFs
@@ -995,6 +996,7 @@ private:
     std::vector<CrazyflieBroadcaster::externalPose> data_pose;
 
     for (const auto& pose : msg->poses) {
+      RCLCPP_INFO(logger_, "msg.qx:%f, msg.qy:%f, msg.qz:%f, msg.qw:%f", (float)pose.pose.orientation.x, (float)pose.pose.orientation.y, (float)pose.pose.orientation.z, (float)pose.pose.orientation.w);
       const auto iter = name_to_id_.find(pose.name);
       if (iter != name_to_id_.end()) {
         uint8_t id = iter->second;
@@ -1005,6 +1007,7 @@ private:
           data_pose.push_back({id, 
             (float)pose.pose.position.x, (float)pose.pose.position.y, (float)pose.pose.position.z,
             (float)pose.pose.orientation.x, (float)pose.pose.orientation.y, (float)pose.pose.orientation.z, (float)pose.pose.orientation.w});
+            // 0.0, 0.0, 0.0, 1.0});
         }
       }
     }
