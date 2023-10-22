@@ -47,6 +47,7 @@ import time
 
 from crazyflie_py import Crazyswarm
 import rclpy
+from torchrl.envs.utils import step_mdp
 
 TAKEOFF_DURATION = 2.5
 HOVER_DURATION = 5.0
@@ -125,7 +126,7 @@ def main(cfg):
     agent_spec: AgentSpec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device="cuda")
     
-    ckpt_name = "checkpoints/checkpoint_takeoff_1017.pt"
+    ckpt_name = "checkpoints/checkpoint_hover_1017.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -162,10 +163,12 @@ def main(cfg):
         #     timeHelper.sleepForRate(100)
 
         last_time = time.time()
+        data_frame = []
 
         for i in range(300):
             
             data = policy(data)
+            data_frame.append(data)
 
             # update observation
             if rclpy.ok():
@@ -176,13 +179,17 @@ def main(cfg):
             for id in range(num_cf):
                 action = data[("agents", "action")][0][id].cpu().numpy().astype(float)
                 cf = cfs[id]
-                thrust = action[3] / 0.28 * 0.4 / 4
+                print(action)
+                thrust = (action[3] + 1) / 2 / 0.28 * 0.33
                 print('thrust', thrust)
                 thrust = float(max(0, min(1, thrust)))
                 # print('ctbr', thrust, action[0], action[1], action[2])
-                cf.cmdVel(action[0] / 3.14 * 180, action[1] / 3.14 * 180, action[2] / 3.14 * 180, thrust*2**16)
+                cf.cmdVel(action[0] * 180, action[1] * 180, action[2] * 180, thrust*2**16)
+                # cf.cmdVel(0.,0.,0., thrust*2**16)
 
             data = env.step(data)
+            data = step_mdp(data)
+            
             # print(data[('agents', 'observation')][0][0])
 
             timeHelper.sleepForRate(100)
@@ -191,9 +198,15 @@ def main(cfg):
             # print('time', dt)
             # last_time = cur_time
 
+    # end program
+    for i in range(20):
+        for cf in cfs:
+            cf.cmdVel(0., 0., 0., 0.5 * 2 ** 16)
+        timeHelper.sleepForRate(100)
     wandb.finish()
     env.node.destroy_node()
     rclpy.shutdown()
+    torch.save(data_frame, "data.pt")
 
 if __name__ == "__main__":
     main()

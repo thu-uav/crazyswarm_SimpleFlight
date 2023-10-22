@@ -47,6 +47,7 @@ import time
 
 from crazyflie_py import Crazyswarm
 import rclpy
+from torchrl.envs.utils import step_mdp
 
 TAKEOFF_DURATION = 2.5
 HOVER_DURATION = 5.0
@@ -146,12 +147,13 @@ def main(cfg):
 
             for id in range(num_cf):
                 action = data[("agents", "action")][0][id].cpu().numpy().astype(float)
-                thrust = action[3] / 0.28 * 0.4
+                thrust = (action[3] + 1) / 2
                 print('thrust', thrust)
                 thrust = float(max(0, min(1, thrust)))
-                print('ctbr', thrust, action[0], action[1], action[2])
+                print('ctbr', thrust, action[0] * 180, action[1] * 180, action[2] * 180)
 
             data = env.step(data)
+            data = step_mdp(data)
             # print(data[('agents', 'observation')][0][0])
 
             cur_time = time.time()

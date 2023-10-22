@@ -21,7 +21,7 @@ class FakeHover(FakeEnv):
 
         super().__init__(cfg, headless)
         
-        self.target_pos = torch.tensor([[0., 0., 1.]])
+        self.target_pos = torch.tensor([[0., 0., .5]])
         
 
     def _set_specs(self):

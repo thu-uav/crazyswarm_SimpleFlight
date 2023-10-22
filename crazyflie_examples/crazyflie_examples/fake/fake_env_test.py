@@ -97,6 +97,9 @@ class FakeEnv(EnvBase):
         self.num_cf = 1
         self.drone_state = torch.zeros((self.num_cf, 16))
         self.drone_state[0][3] = 1.
+        self.drone_state[0][2] = 1.
+        # self.drone_state[0][10] = 1.
+        # self.drone_state[0][15] = 1.
 
         # self.swarm = Crazyswarm()
         # self.timeHelper = self.swarm.timeHelper

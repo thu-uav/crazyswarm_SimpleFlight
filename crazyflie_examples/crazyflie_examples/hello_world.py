@@ -6,18 +6,18 @@ import numpy as np
 
 TAKEOFF_DURATION = 2.5
 HOVER_DURATION = 5.0
-
+H_OFFSET = 0.
 
 def main():
     swarm = Crazyswarm()
     timeHelper = swarm.timeHelper
     cf = swarm.allcfs.crazyflies[0]
 
-    cf.takeoff(targetHeight=0.5, duration=TAKEOFF_DURATION)
+    cf.takeoff(targetHeight=0.5+H_OFFSET, duration=TAKEOFF_DURATION)
     timeHelper.sleep(TAKEOFF_DURATION + HOVER_DURATION)
     # cf.goTo(np.array([1.0, 1.0, 1.0]), 0, 2.0)
     # timeHelper.sleep(TAKEOFF_DURATION)
-    cf.land(targetHeight=0.04, duration=2.5)
+    cf.land(targetHeight=0.04+H_OFFSET, duration=2.5)
     timeHelper.sleep(TAKEOFF_DURATION)
 
 
