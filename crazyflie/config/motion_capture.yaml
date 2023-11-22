@@ -1,9 +1,9 @@
 /motion_capture_tracking:
   ros__parameters:
-    type: "vrpn" # vicon,optitrack,qualisys,vrpn
+    type: "optitrack" # vicon,optitrack,qualisys,vrpn
     hostname: "169.254.128.169" #"130.149.82.37"
 
-    # mode: "libRigidBodyTracker" # one of motionCapture,libRigidBodyTracker
+    mode: "libRigidBodyTracker" # one of motionCapture,libRigidBodyTracker
 
     topics:
       poses:
@@ -20,9 +20,9 @@
           p2: [-0.042, -0.042, 0.0  ]  # back right  (M2)
           p3: [ 0.042, -0.042, 0.0  ]  # front right (M1)
       default_single_marker:
-        offset: [0.0, -0.01, -0.04]
+        offset: [0.0, 0.0, 0.0]
         points:
-          p0: [0.0177184,0.0139654,0.0557585]
+          p0: [   0.0,    0.0, 0.022]
       mocap_deck:
         offset: [0.0, 0.0, -0.01]
         points:
@@ -54,7 +54,7 @@
 
     dynamics_configurations:
       default:
-        max_velocity: [2, 2, 3] # m/s
+        max_velocity: [10,10,10] # m/s
         max_angular_velocity: [20, 20, 10] # rad/s
         max_roll: 1.4 #rad
         max_pitch: 1.4 #rad

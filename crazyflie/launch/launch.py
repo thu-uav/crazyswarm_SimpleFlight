@@ -115,14 +115,14 @@ def generate_launch_description():
             emulate_tty=True,
             parameters=server_params
         ),
-        # Node(
-        #     package='rviz2',
-        #     namespace='',
-        #     executable='rviz2',
-        #     name='rviz2',
-        #     arguments=['-d' + os.path.join(get_package_share_directory('crazyflie'), 'config', 'config.rviz')],
-        #     parameters=[{
-        #         "use_sim_time": True,
-        #     }]
-        # ),
+        Node(
+            package='rviz2',
+            namespace='',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d' + os.path.join(get_package_share_directory('crazyflie'), 'config', 'config.rviz')],
+            parameters=[{
+                "use_sim_time": True,
+            }]
+        ),
     ])

@@ -5,22 +5,20 @@ robots:
   #   uri: radio://0/80/2M/E7E7E7E707
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
-
-  # cf4:
+  # cf5:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E704
+  #   uri: radio://0/80/2M/E7E7E7E705
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+  # cf1:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E701
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
     
-  cf6:
-    enabled: true
-    uri: radio://0/80/2M/E7E7E7E706
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
-
-  # cf9:
+  # cf6:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E709
+  #   uri: radio://0/80/2M/E7E7E7E706
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
@@ -29,16 +27,34 @@ robots:
   #   uri: radio://0/80/2M/E7E7E7E702
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
+
+  # cf9:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E709
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+
+  # cf8:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E708
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+
+  # cf9:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E709
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
   # cf3:
   #   enabled: true
   #   uri: radio://0/80/2M/E7E7E7E703
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
-  # cf4:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E704
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf4:
+    enabled: true
+    uri: radio://0/80/2M/E7E7E7E704
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
   
 # Definition of the various robot types
 robot_types:
@@ -46,24 +62,12 @@ robot_types:
     motion_capture:
       enabled: true
       # only if enabled; see motion_capture.yaml
-      marker: default
+      marker: default_single_marker
       dynamics: default
     big_quad: false
     battery:
       voltage_warning: 3.8  # V
       voltage_critical: 3.7 # V
-
-  cf21_mocap_deck:
-    motion_capture:
-      enabled: true
-      # only if enabled; see motion_capture.yaml
-      marker: default
-      dynamics: default
-    big_quad: false
-    battery:
-      voltage_warning: 3.8  # V
-      voltage_critical: 3.7 # V
-
 
 # global settings for all robots
 all:
@@ -87,13 +91,52 @@ all:
         vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
       # motors:
       #   frequency: 100
-      #   vars: ['motors.m1', 'motors.m2', 'motors.m3', 'motors.m4']
-      # thrust:
+      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
+      command_rpy:
+        frequency: 100
+        vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
+      real_rate:
+        frequency: 100
+        vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
+      # target_rpy:
       #   frequency: 100
-      #   vars: ["controller.cmd_thrust", "controller.actuatorThrust"]
-      # rpy:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      #   vars: ["controller.roll", "controller.pitch", "controller.yaw"]
+      target_rate:
+        frequency: 100
+        vars: ["controller.rollRate", "controller.pitchRate", "controller.yawRate"]
+      real_rpy:
+        frequency: 100 # Hz
+        vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      # gyro:
+      #   frequency: 100
+      #   vars: ["gyro.x", "gyro.y", "gyro.z"]
+      # pid_roll:
+      #   frequency: 100
+      #   vars: ["pid_rate.roll_outP", "pid_rate.roll_outI", "pid_rate.roll_outD", "pid_rate.roll_outFF"]
+      # pid_pitch:
+      #   frequency: 100
+      #   vars: ["pid_rate.pitch_outP", "pid_rate.pitch_outI", "pid_rate.pitch_outD", "pid_rate.pitch_outFF"]
+      # target_v:
+      #   frequency: 100
+      #   vars: ["posCtl.targetVX", "posCtl.targetVY", "posCtl.targetVZ"]
+      # target_pos:
+      #   frequency: 100
+      #   vars: ["posCtl.targetX", "posCtl.targetY", "posCtl.targetZ"]
+      # real_pos:
+      #   frequency: 100
+      #   vars: ["posCtl.bodyX", "posCtl.bodyY"]
+      # real_v:
+      #   frequency: 100
+      #   vars: ["posCtl.bodyVX", "posCtl.bodyVY"]
+      # pid_x:
+      #   frequency: 100
+      #   vars: ["posCtl.Xp", "posCtl.Xi", "posCtl.Xd", "posCtl.Xff"]
+      # pid_y:
+      #   frequency: 100
+      #   vars: ["posCtl.Yp", "posCtl.Yi", "posCtl.Yd", "posCtl.Yff"]
+      # stabilizer:
+      #   frequency: 100
+      #   vars: ["stabilizer.roll", "stabilizer.pitch", "stabilizer.yaw", "stabilizer.thrust"]
   # firmware parameters for all drones (use robot_types/type_name to set per type, or
   # robots/drone_name to set per drone)
   firmware_params:
@@ -101,7 +144,7 @@ all:
       enHighLevel: 1
     stabilizer:
       estimator: 2 # 1: complementary, 2: kalman
-      controller: 2 # 1: PID, 2: mellinger
+      controller: 1 # 1: PID, 2: mellinger
     # ring:
     #   effect: 16 # 6: double spinner, 7: solid color, 16: packetRate
     #   solidBlue: 255 # if set to solid color

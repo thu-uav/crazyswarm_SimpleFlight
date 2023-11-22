@@ -48,7 +48,7 @@ class FakeRobot():
         self.cfg = cfg
         if name == "Hummingbird":
             self.num_rotors = 4
-        elif name == "Crazyflie":
+        elif name == "Crazyflie" or "crazyflie":
             self.num_rotors = 4
         elif name == "Firefly":
             self.num_rotors = 6
@@ -86,8 +86,6 @@ class FakeEnv(EnvBase):
         self.cfg = cfg
         # extract commonly used parameters
         self.num_envs = self.cfg.env.num_envs
-        self.max_episode_length = self.cfg.env.max_episode_length
-        self.min_episode_length = self.cfg.env.min_episode_length
 
         torch.backends.cudnn.benchmark = True
         torch.backends.cudnn.deterministic = False
@@ -97,22 +95,9 @@ class FakeEnv(EnvBase):
         self.num_cf = 1
         self.drone_state = torch.zeros((self.num_cf, 16))
         self.drone_state[0][3] = 1.
-        self.drone_state[0][2] = 1.
-        # self.drone_state[0][10] = 1.
-        # self.drone_state[0][15] = 1.
+        self.drone_state[0][2] = 0.5
 
-        # self.swarm = Crazyswarm()
-        # self.timeHelper = self.swarm.timeHelper
-        # self.cfs = self.swarm.allcfs.crazyflies
-        # self.num_cf = len(self.cfs)
-        # self.drone_state = torch.zeros((self.num_cf, 16))
-        # self.drone_state[0][3] = 1. # default rotation
-
-        # # self.executor = MultiThreadedExecutor()
-        # for cf in self.cfs:
-        # #     self.executor.add_node(cf.node)
-        #     self.node = Subscriber(cf.prefix,  self.update_drone_pos, self.update_drone_quat, self.update_drone_vel) # note: not usable for sim
-        # # self.executor.add_node(node)
+        self.cnt = 0
 
     @property
     def agent_spec(self):
@@ -134,11 +119,13 @@ class FakeEnv(EnvBase):
         return self._compute_state_and_obs()
 
     def _step(self, tensordict: TensorDictBase) -> TensorDictBase:
+        self.drone_state[0][2] = 0.1 * self.cnt
         tensordict = TensorDict({"next": {}}, self.batch_size)
         obs = self._compute_state_and_obs()
         tensordict["next"].update(obs)
         tensordict["next"].update(self._compute_reward_and_done())
         tensordict.update(obs)
+        self.cnt += 1
         # print(tensordict[('next', 'agents', 'observation')])
         return tensordict
 

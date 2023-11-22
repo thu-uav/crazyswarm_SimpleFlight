@@ -5,16 +5,12 @@ import torch.distributions as D
 from .fake_env import AgentSpec, FakeEnv, FakeRobot
 from omni_drones.utils.torch import euler_to_quaternion, quat_axis
 
+from torchrl.data import UnboundedContinuousTensorSpec, CompositeSpec, DiscreteTensorSpec
+import collections
 from tensordict.tensordict import TensorDict, TensorDictBase
-from torchrl.data import UnboundedContinuousTensorSpec, CompositeSpec
 
 class FakeHover(FakeEnv):
     def __init__(self, cfg, headless):
-        self.reward_effort_weight = cfg.task.reward_effort_weight
-        self.reward_action_smoothness_weight = cfg.task.reward_action_smoothness_weight
-        self.reward_distance_scale = cfg.task.reward_distance_scale
-        self.time_encoding = cfg.task.time_encoding
-        self.randomization = cfg.task.get("randomization", {})
         self.alpha = 0.8
         self.cfg = cfg
         self.drone = FakeRobot(self.cfg.task, self.cfg.task.drone_model, device = cfg.sim.device)
@@ -25,19 +21,26 @@ class FakeHover(FakeEnv):
         
 
     def _set_specs(self):
-        drone_state_dim = self.drone.state_spec.shape[-1]
-        # observation_dim = 16 # drone_state_dim + 3 - self.drone.num_rotors
-        observation_dim = 23
+        # drone_state_dim = self.drone.state_spec.shape[-1]
+        observation_dim = 3 + 3 + 4 + 3 + 3 # position, velocity, quaternion, heading, up, relative heading
 
-        # if self.cfg.task.time_encoding:
-        #     self.time_encoding_dim = 4
-        #     observation_dim += self.time_encoding_dim
+        if self.cfg.task.omega:
+            observation_dim += 3
+
+        if self.cfg.task.motor:
+            observation_dim += self.drone.num_rotors
+
+        if self.cfg.task.time_encoding:
+            self.time_encoding_dim = 4
+            observation_dim += self.time_encoding_dim
+
+        self.latency = 2 if self.cfg.task.latency else 0
+        # self.obs_buffer = collections.deque(maxlen=self.latency)
 
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
-                #"observation": UnboundedContinuousTensorSpec((1, observation_dim-6), device=self.device),   remove throttle
                 "observation": UnboundedContinuousTensorSpec((1, observation_dim), device=self.device),
-                # "intrinsics": self.drone.intrinsics_spec.unsqueeze(0).to(self.device)
+                "intrinsics": self.drone.intrinsics_spec.unsqueeze(0).to(self.device)
             })
         }).expand(self.num_envs).to(self.device)
         self.action_spec = CompositeSpec({
@@ -51,17 +54,16 @@ class FakeHover(FakeEnv):
             })
         }).expand(self.num_envs).to(self.device)
         self.done_spec = CompositeSpec({
-            "agents": CompositeSpec({
-                "done": UnboundedContinuousTensorSpec((1, 1))
-            })
+            "done": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
+            "terminated": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
+            "truncated": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
         }).expand(self.num_envs).to(self.device)
         self.agent_spec["drone"] = AgentSpec(
             "drone", 1,
             observation_key=("agents", "observation"),
             action_key=("agents", "action"),
             reward_key=("agents", "reward"),
-            state_key=("agents", "intrinsics"),
-            done_key=("agents", "done")
+            state_key=("agents", "intrinsics")
         )
 
         stats_spec = CompositeSpec({
@@ -84,9 +86,10 @@ class FakeHover(FakeEnv):
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
         self.rpos = self.target_pos - self.drone_state[..., :3]
-        obs = [self.rpos, self.drone_state[..., 3:], torch.zeros((self.num_cf, 7))]
+        obs = [self.rpos, self.drone_state[..., 3:], torch.zeros((self.num_cf, 4))]
         obs = torch.concat(obs, dim=1).unsqueeze(0)
-        
+        print(obs)
+
         return TensorDict({
             "agents": {
                 "observation": obs,
@@ -100,8 +103,10 @@ class FakeHover(FakeEnv):
             {
                 "agents": {
                     "reward": reward,
-                    "done": done,
                 },
+                "done": done,
+                "terminated": done,
+                "truncated": done
             },
             self.num_envs,
         )

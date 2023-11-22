@@ -11,16 +11,16 @@ class Subscriber(Node):
             LogDataGeneric,
             name + '/pos',
             call_back_pos,
-            10)
+            1)
 
         self.subscription_quat = self.create_subscription(
             LogDataGeneric,
             name + '/quat',
             call_back_quat,
-            10)
+            1)
         
         self.subscription_vel = self.create_subscription(
             LogDataGeneric,
             name + '/vel',
             call_back_vel,
-            10)
+            1)

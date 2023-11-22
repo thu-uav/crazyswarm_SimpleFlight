@@ -48,7 +48,7 @@ class FakeRobot():
         self.cfg = cfg
         if name == "Hummingbird":
             self.num_rotors = 4
-        elif name == "Crazyflie":
+        elif name == "Crazyflie" or "crazyflie":
             self.num_rotors = 4
         elif name == "Firefly":
             self.num_rotors = 6
@@ -86,8 +86,6 @@ class FakeEnv(EnvBase):
         self.cfg = cfg
         # extract commonly used parameters
         self.num_envs = self.cfg.env.num_envs
-        self.max_episode_length = self.cfg.env.max_episode_length
-        self.min_episode_length = self.cfg.env.min_episode_length
 
         torch.backends.cudnn.benchmark = True
         torch.backends.cudnn.deterministic = False

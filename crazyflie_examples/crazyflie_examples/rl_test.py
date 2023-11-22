@@ -13,25 +13,18 @@ from omni_drones import CONFIG_PATH #, init_simulation_app
 from torchrl.collectors import SyncDataCollector 
 from omni_drones.utils.torchrl import AgentSpec
 from omni_drones.utils.torchrl.transforms import (
-    LogOnEpisode, 
     FromMultiDiscreteAction, 
     FromDiscreteAction,
     ravel_composite,
+    VelController,
+    AttitudeController,
+    RateController,
     History
 )
 from omni_drones.utils.wandb import init_wandb
+from omni_drones.learning.ppo import PPORNNPolicy, PPOPolicy
 from omni_drones.learning import (
     MAPPOPolicy, 
-    HAPPOPolicy,
-    QMIXPolicy,
-    DQNPolicy,
-    SACPolicy,
-    TD3Policy,
-    MATD3Policy,
-    TDMPCPolicy,
-    Policy,
-    PPOPolicy,
-    PPOAdaptivePolicy, PPORNNPolicy
 )
 
 from setproctitle import setproctitle
@@ -63,7 +56,7 @@ class Every:
             self.func(*args, **kwargs)
         self.i += 1
 
-@hydra.main(version_base=None, config_path=CONFIG_PATH, config_name="train")
+@hydra.main(version_base=None, config_path=CONFIG_PATH, config_name="deploy")
 def main(cfg):
     OmegaConf.register_new_resolver("eval", eval)
     OmegaConf.resolve(cfg)
@@ -97,28 +90,29 @@ def main(cfg):
         k for k in base_env.observation_spec.keys(True, True) 
         if isinstance(k, tuple) and k[0]=="stats"
     ]
-    logger = LogOnEpisode(
-        cfg.env.num_envs,
-        in_keys=stats_keys,
-        log_keys=stats_keys,
-        logger_func=log,
-    )
-    transforms = [InitTracker(), logger]
+    transforms=[]
+    # logger = LogOnEpisode(
+    #     cfg.env.num_envs,
+    #     in_keys=stats_keys,
+    #     log_keys=stats_keys,
+    #     logger_func=log,
+    # )
+    # transforms = [InitTracker(), logger]
 
-    # a CompositeSpec is by deafault processed by a entity-based encoder
-    # flatten it to use a MLP encoder instead
-    if cfg.task.get("flatten_obs", False):
-        transforms.append(ravel_composite(base_env.observation_spec, ("agents", "observation")))
-    if cfg.task.get("flatten_state", False):
-        transforms.append(ravel_composite(base_env.observation_spec, "state"))
-    if (
-        cfg.task.get("flatten_intrinsics", True)
-        and ("agents", "intrinsics") in base_env.observation_spec.keys(True)
-    ):
-        transforms.append(ravel_composite(base_env.observation_spec, ("agents", "intrinsics"), start_dim=-1))
+    # # a CompositeSpec is by deafault processed by a entity-based encoder
+    # # flatten it to use a MLP encoder instead
+    # if cfg.task.get("flatten_obs", False):
+    #     transforms.append(ravel_composite(base_env.observation_spec, ("agents", "observation")))
+    # if cfg.task.get("flatten_state", False):
+    #     transforms.append(ravel_composite(base_env.observation_spec, "state"))
+    # if (
+    #     cfg.task.get("flatten_intrinsics", True)
+    #     and ("agents", "intrinsics") in base_env.observation_spec.keys(True)
+    # ):
+    #     transforms.append(ravel_composite(base_env.observation_spec, ("agents", "intrinsics"), start_dim=-1))
 
-    if cfg.task.get("history", False):
-        transforms.append(History([("agents", "observation")]))
+    # if cfg.task.get("history", False):
+    #     transforms.append(History([("agents", "observation")]))
 
     env = TransformedEnv(base_env, Compose(*transforms)).train()
     env.set_seed(cfg.seed)
@@ -126,7 +120,7 @@ def main(cfg):
     agent_spec: AgentSpec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device="cuda")
     
-    ckpt_name = "checkpoints/checkpoint_hover_1017.pt"
+    ckpt_name = "model/1119_40hz.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -134,16 +128,16 @@ def main(cfg):
 
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
-        data = env.reset()
-        data = policy(data)
+        data = env.reset().to(device=base_env.device)
+        data = policy(data, deterministic=True)
 
         # update observation
         data = env.step(data) 
 
         last_time = time.time()
-        for i in range(100):
+        for i in range(15):
             
-            data = policy(data)
+            data = policy(data, deterministic=True)
 
             for id in range(num_cf):
                 action = data[("agents", "action")][0][id].cpu().numpy().astype(float)

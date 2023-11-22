@@ -68,25 +68,32 @@ def goCircle(timeHelper, cf):
         cf.cmdVel(0., 0., 0., 0.)
         msg = get_vel()
         publisher.publish(msg)
-        rclpy.spin_once(subscriber)
+        # rclpy.spin_once(subscriber)
 
     print("start stage one")
 
     for _ in range(100):
-        cf.cmdVel(0., 0., 0., 0.75 * 2**16)
+        cf.cmdVel(0., 0., 0., 0.63 * 2**16)
         msg = get_vel()
         publisher.publish(msg)
-        rclpy.spin_once(subscriber)
-        # timeHelper.sleep(0.01)
+        # rclpy.spin_once(subscriber)
+        timeHelper.sleep(0.01)
+
+    for _ in range(100):
+        cf.cmdVel(30., 30., 0., 0.6 * 2**16)
+        msg = get_vel()
+        publisher.publish(msg)
+        # rclpy.spin_once(subscriber)
+        timeHelper.sleep(0.01)
 
     print('start stage two')
 
     for i in range(150):
-        cf.cmdVel(0., 0., 0., 0.63*2**16)
+        cf.cmdVel(0., 0., 0., 0.6*2**16)
         msg = get_vel()
         publisher.publish(msg)
-        rclpy.spin_once(subscriber)
-        # timeHelper.sleep(0.01)
+        # rclpy.spin_once(subscriber)
+        timeHelper.sleep(0.01)
     for _ in range(20):
         cf.cmdVel(0., 0., 0., 0.)
     subscriber.destroy_node()
