@@ -85,6 +85,7 @@ ament_target_dependencies(crazyflie_server
 # Install C++ executables
 install(TARGETS
   # crazyflie_tools
+  comCheck
   scan
   listParams
   listLogVariables
@@ -95,6 +96,7 @@ install(TARGETS
   console
   log
   setParam
+  downloadUSDLogfile
   #
   teleop
   crazyflie_server
