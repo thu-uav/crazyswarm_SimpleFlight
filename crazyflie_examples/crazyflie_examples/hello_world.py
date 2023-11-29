@@ -16,7 +16,7 @@ def main():
     cf = swarm.allcfs.crazyflies[0]
 
     cf.takeoff(targetHeight=HEIGHT, duration=TAKEOFF_DURATION)
-    timeHelper.sleep(HOVER_DURATION)
+    timeHelper.sleep(TAKEOFF_DURATION)
     # cf.goTo(np.array([0., SIDE, HEIGHT]), 360, HOVER_DURATION)
     # timeHelper.sleep(HOVER_DURATION)
     # cf.goTo(np.array([SIDE, SIDE, HEIGHT]), 360, HOVER_DURATION)

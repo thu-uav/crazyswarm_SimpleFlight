@@ -90,28 +90,7 @@ def main(cfg):
         k for k in base_env.observation_spec.keys(True, True) 
         if isinstance(k, tuple) and k[0]=="stats"
     ]
-    # logger = LogOnEpisode(
-    #     cfg.env.num_envs,
-    #     in_keys=stats_keys,
-    #     log_keys=stats_keys,
-    #     logger_func=log,
-    # )
-    # transforms = [InitTracker(), logger]
 
-    # # a CompositeSpec is by deafault processed by a entity-based encoder
-    # # flatten it to use a MLP encoder instead
-    # if cfg.task.get("flatten_obs", False):
-    #     transforms.append(ravel_composite(base_env.observation_spec, ("agents", "observation")))
-    # if cfg.task.get("flatten_state", False):
-    #     transforms.append(ravel_composite(base_env.observation_spec, "state"))
-    # if (
-    #     cfg.task.get("flatten_intrinsics", True)
-    #     and ("agents", "intrinsics") in base_env.observation_spec.keys(True)
-    # ):
-    #     transforms.append(ravel_composite(base_env.observation_spec, ("agents", "intrinsics"), start_dim=-1))
-
-    # if cfg.task.get("history", False):
-    #     transforms.append(History([("agents", "observation")]))
     transforms=[]
 
     env = TransformedEnv(base_env, Compose(*transforms)).train()
@@ -120,7 +99,7 @@ def main(cfg):
     agent_spec: AgentSpec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
     
-    ckpt_name = "model/1119_40hz.pt"
+    ckpt_name = "model/1128_mlp.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -134,8 +113,8 @@ def main(cfg):
         data = env.reset().to(device=base_env.device)
         data = policy(data, deterministic=True)
 
-        cf[0].takeoff(targetHeight=1.0, duration=TAKEOFF_DURATION)
-        timeHelper.sleep(TAKEOFF_DURATION)
+        # cfs[0].takeoff(targetHeight=1.0, duration=TAKEOFF_DURATION)
+        # timeHelper.sleep(TAKEOFF_DURATION)
 
         print('start to deploy rl policy')
 
@@ -157,8 +136,14 @@ def main(cfg):
             cf.setParam("flightmode.stabModePitch", 0)
             cf.setParam("flightmode.stabModeYaw", 0)
 
+        # send several 0-thrust commands to prevent thrust deadlock
+        for i in range(20):
+            for cf in cfs:
+                cf.cmdVel(0.,0.,0.,0.)
+            timeHelper.sleepForRate(100)
+
         # real policy rollout
-        for i in range(300):
+        for i in range(1000):
             
             data = policy(data, deterministic=True)
             data_frame.append(data)
@@ -170,18 +155,19 @@ def main(cfg):
                 rclpy.spin_once(env.node) # vel
 
             for id in range(num_cf):
-                action = data[("agents", "action")][0][id].cpu().numpy().astype(float)
+                # TODO: automatically add tanh
+                action = torch.tanh(data[("agents", "action")])
+                action = action[0][id].cpu().numpy().astype(float)
                 cf = cfs[id]
-                # print(action)
-                thrust = (action[3] + 1) / 2# / 0.28 * 0.33
+                thrust = (action[3] + 1) / 2
                 print('thrust', thrust)
                 thrust = float(max(0, min(0.99, thrust)))
-                rpy_scale = 10
+                rpy_scale = 30
                 # r = float(max(-0.5, min(0.5, action[0])))
                 # p = float(max(-0.5, min(0.5, action[1])))
                 # y = float(max(-0.5, min(0.5, action[2])))
-                print('ctbr', thrust, action[0] * 180, action[1] * 180, action[2] * 180)
-                cf.cmdVel(action[0] * rpy_scale, action[1] * rpy_scale, 0., thrust*2**16)
+                print('ctbr', thrust, action[0] * rpy_scale, action[1] * rpy_scale, action[2] * rpy_scale)
+                cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
                 # cf.cmdVel(r * 180, p * 180, y * 180, thrust*2**16)
                 # cf.cmdVel(0.,0.,0., thrust*2**16)
 
@@ -190,7 +176,7 @@ def main(cfg):
             
             # print(data[('agents', 'observation')][0][0])
 
-            timeHelper.sleepForRate(100)
+            timeHelper.sleepForRate(50)
             cur_time = time.time()
             dt = cur_time - last_time
             print('time', dt)
@@ -199,7 +185,7 @@ def main(cfg):
     # end program
     for i in range(20):
         for cf in cfs:
-            cf.cmdVel(0., 0., 0., 0.55 * 2 ** 16)
+            cf.cmdVel(0., 0., 0., 0.)
         timeHelper.sleepForRate(100)
     wandb.finish()
     env.node.destroy_node()

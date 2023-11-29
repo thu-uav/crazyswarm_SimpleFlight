@@ -17,24 +17,24 @@ class FakeHover(FakeEnv):
 
         super().__init__(cfg, headless)
         
-        self.target_pos = torch.tensor([[0., 0., .5]])
+        self.target_pos = torch.tensor([[0., 0., 1.]])
         
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
         observation_dim = 3 + 3 + 4 + 3 + 3 # position, velocity, quaternion, heading, up, relative heading
 
-        if self.cfg.task.omega:
-            observation_dim += 3
+        # if self.cfg.task.omega:
+        #     observation_dim += 3
 
-        if self.cfg.task.motor:
-            observation_dim += self.drone.num_rotors
+        # if self.cfg.task.motor:
+        #     observation_dim += self.drone.num_rotors
 
         if self.cfg.task.time_encoding:
             self.time_encoding_dim = 4
             observation_dim += self.time_encoding_dim
 
-        self.latency = 2 if self.cfg.task.latency else 0
+        # self.latency = 2 if self.cfg.task.latency else 0
         # self.obs_buffer = collections.deque(maxlen=self.latency)
 
         self.observation_spec = CompositeSpec({

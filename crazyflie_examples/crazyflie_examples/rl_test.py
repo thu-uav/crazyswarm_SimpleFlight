@@ -120,7 +120,7 @@ def main(cfg):
     agent_spec: AgentSpec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device="cuda")
     
-    ckpt_name = "model/1119_40hz.pt"
+    ckpt_name = "model/1128_mlp.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -140,7 +140,8 @@ def main(cfg):
             data = policy(data, deterministic=True)
 
             for id in range(num_cf):
-                action = data[("agents", "action")][0][id].cpu().numpy().astype(float)
+                action = torch.tanh(data[("agents", "action")])
+                action = action[0][id].cpu().numpy().astype(float)
                 thrust = (action[3] + 1) / 2
                 print('thrust', thrust)
                 thrust = float(max(0, min(1, thrust)))

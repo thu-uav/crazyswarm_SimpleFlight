@@ -89,24 +89,30 @@ all:
       vel:
         frequency: 100 # Hz
         vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
-      # motors:
+      # command_rpy:
       #   frequency: 100
-      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
-      command_rpy:
-        frequency: 100
-        vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
-      real_rate:
-        frequency: 100
-        vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
+      #   vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
+      # real_rate:
+      #   frequency: 100
+      #   vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
+      # target_rate:
+      #   frequency: 100
+      #   vars: ["controller.rollRate", "controller.pitchRate", "controller.yawRate"]
+      # real_rpy:
+      #   frequency: 100 # Hz
+      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
       # target_rpy:
       #   frequency: 100
       #   vars: ["controller.roll", "controller.pitch", "controller.yaw"]
-      target_rate:
-        frequency: 100
-        vars: ["controller.rollRate", "controller.pitchRate", "controller.yawRate"]
-      real_rpy:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      # motors:
+      #   frequency: 100
+      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
+      # motors_req:
+      #   frequency: 100
+      #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
+      # battery:
+      #   frequency: 100
+      #   vars: ['pm.vbat', 'pm.extVbat', 'pm.extCurr', 'pm.batteryLevel']
       # gyro:
       #   frequency: 100
       #   vars: ["gyro.x", "gyro.y", "gyro.z"]
