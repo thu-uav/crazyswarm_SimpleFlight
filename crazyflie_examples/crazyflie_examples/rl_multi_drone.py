@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, Swarm
+from fake import FakeHover, FakeTrack, Swarm, MultiHover
 import time
 
 from crazyflie_py import Crazyswarm
@@ -46,6 +46,7 @@ def main(cfg):
     OmegaConf.set_struct(cfg, False)
     print(OmegaConf.to_yaml(cfg))
 
+    time.sleep(5)
     algos = {
         "ppo": PPOPolicy,
         # "ppo_adaptive": PPOAdaptivePolicy,
@@ -53,7 +54,7 @@ def main(cfg):
         "mappo": MAPPOPolicy, 
     }
     swarm = Swarm(cfg)
-    base_env = FakeHover(cfg, connection=True, swarm=swarm)
+    base_env = MultiHover(cfg, connection=True, swarm=swarm)
 
     base_env.set_seed(cfg.seed)
 
@@ -64,13 +65,10 @@ def main(cfg):
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
-
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
         data = base_env.reset().to(device=base_env.device)
         data = policy(data, deterministic=True)
-
-        print('start to deploy rl policy')
 
         # update observation
         data = base_env.step(data) 
@@ -81,7 +79,7 @@ def main(cfg):
         swarm.init()
 
         # real policy rollout
-        for timestep in range(600):
+        for timestep in range(500):
             
             data = policy(data, deterministic=True)
             data_frame.append(data)
@@ -91,18 +89,6 @@ def main(cfg):
             data = base_env.step(data)
             data = step_mdp(data)
 
-            # if i == 300:
-            #     base_env.target_pos = torch.tensor([[0., 1., .5]])
-
-            # if i == 600:
-            #     base_env.target_pos = torch.tensor([[0., 1., 1.]])
-
-            # if i == 900:
-            #     base_env.target_pos = torch.tensor([[0., 0., .5]])
-
-            if timestep == 300:
-                base_env.target_pos = torch.tensor([[0., 0., .1]])
-            
             cur_time = time.time()
             dt = cur_time - last_time
             print('time', dt)

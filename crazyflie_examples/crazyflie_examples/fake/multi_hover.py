@@ -8,13 +8,14 @@ from omni_drones.utils.torch import euler_to_quaternion, quat_axis
 from torchrl.data import UnboundedContinuousTensorSpec, CompositeSpec, DiscreteTensorSpec, BoundedTensorSpec
 from tensordict.tensordict import TensorDict, TensorDictBase
 
-class FakeHover(FakeEnv):
+class MultiHover(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
         super().__init__(cfg, connection, swarm)
+        self.num_cf = 2
         
-        self.target_pos = torch.tensor([[0., 0., 1.]])   
+        self.target_pos = torch.tensor([[0., .5, .5], [0., -.5, .5]])
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -26,7 +27,7 @@ class FakeHover(FakeEnv):
 
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
-                "observation": UnboundedContinuousTensorSpec((1, observation_dim), device=self.device),
+                "observation": UnboundedContinuousTensorSpec((self.num_cf, observation_dim), device=self.device),
             })
         }).expand(self.num_envs).to(self.device)
         self.action_spec = CompositeSpec({
@@ -45,7 +46,7 @@ class FakeHover(FakeEnv):
             "truncated": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
         }).expand(self.num_envs).to(self.device)
         self.agent_spec["drone"] = AgentSpec(
-            "drone", 1,
+            "drone", self.num_cf,
             observation_key=("agents", "observation"),
             action_key=("agents", "action"),
             reward_key=("agents", "reward"),

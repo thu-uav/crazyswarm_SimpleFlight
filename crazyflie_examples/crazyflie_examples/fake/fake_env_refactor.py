@@ -42,7 +42,7 @@ def quat_axis(q, axis=0):
     return quat_rotate(q, basis_vec)
 
 class FakeRobot():
-    def __init__(self, cfg, name, device):
+    def __init__(self, cfg, name, device, id):
         self.name = name
         self.device = device
         self.cfg = cfg
@@ -74,11 +74,119 @@ class FakeRobot():
         self.state_spec = UnboundedContinuousTensorSpec(state_dim, device=self.device)
 
         self.n = 1
+        self.id = id
+
+    def update_drone_pos(self, log, drone_state):
+        drone_state[0][0] = log.values[0]
+        drone_state[0][1] = log.values[1]
+        drone_state[0][2] = log.values[2]
+
+    def update_drone_quat(self, log, drone_state):
+        drone_state[0][3] = log.values[0]
+        drone_state[0][4] = log.values[1]
+        drone_state[0][5] = log.values[2]
+        drone_state[0][6] = log.values[3]
+
+    def update_drone_vel(self, log, drone_state):
+        drone_state[0][7] = log.values[0]
+        drone_state[0][8] = log.values[1]
+        drone_state[0][9] = log.values[2]
+
+    def update_drone_pos_2(self, log, drone_state):
+        drone_state[1][0] = log.values[0]
+        drone_state[1][1] = log.values[1]
+        drone_state[1][2] = log.values[2]
+
+    def update_drone_quat_2(self, log, drone_state):
+        drone_state[1][3] = log.values[0]
+        drone_state[1][4] = log.values[1]
+        drone_state[1][5] = log.values[2]
+        drone_state[1][6] = log.values[3]
+
+    def update_drone_vel_2(self, log, drone_state):
+        drone_state[1][7] = log.values[0]
+        drone_state[1][8] = log.values[1]
+        drone_state[1][9] = log.values[2]
+
+class Swarm():
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.swarm = Crazyswarm()
+        self.timeHelper = self.swarm.timeHelper
+        self.cfs = self.swarm.allcfs.crazyflies
+        self.num_cf = len(self.cfs)
+        self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
+        self.drone_state[..., 3] = 1. # default rotation
+        self.nodes = []
+        self.drones = []
+        id = 0
+
+        for cf in self.cfs:
+            drone = FakeRobot(self.cfg.task, self.cfg.task.drone_model, device = cfg.sim.device, id=id)
+            if id == 0:
+                node = Subscriber(
+                    cf.prefix, 
+                    lambda x: drone.update_drone_pos(x, self.drone_state), 
+                    lambda x: drone.update_drone_quat(x, self.drone_state), 
+                    lambda x: drone.update_drone_vel(x, self.drone_state), 
+                )
+            elif id == 1:
+                node = Subscriber(
+                    cf.prefix, 
+                    lambda x: drone.update_drone_pos_2(x, self.drone_state), 
+                    lambda x: drone.update_drone_quat_2(x, self.drone_state), 
+                    lambda x: drone.update_drone_vel_2(x, self.drone_state), 
+                )
+            self.drones.append(drone)
+            self.nodes.append(node)
+            id += 1
+
+            # set to CTBR mode
+            cf.setParam("flightmode.stabModeRoll", 0)
+            cf.setParam("flightmode.stabModePitch", 0)
+            cf.setParam("flightmode.stabModeYaw", 0)
+
+
+    def get_drone_state(self):
+        # update observation
+        if rclpy.ok():
+            for i in range(self.num_cf):
+                rclpy.spin_once(self.nodes[i]) # pos
+                rclpy.spin_once(self.nodes[i]) # quat
+                rclpy.spin_once(self.nodes[i]) # vel
+        return self.drone_state
+    
+    def act(self, all_action):
+        for id in range(self.num_cf):
+            action = all_action[0][id].cpu().numpy().astype(float)
+            cf = self.cfs[id]
+            thrust = (action[3] + 1) / 2
+            thrust = float(max(0, min(0.9, thrust)))
+            rpy_scale = 30
+            cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
+        self.timeHelper.sleepForRate(50)
+
+    def init(self):
+        # send several 0-thrust commands to prevent thrust deadlock
+        for i in range(20):
+            for cf in self.cfs:
+                cf.cmdVel(0.,0.,0.,0.)
+            self.timeHelper.sleepForRate(100)
+
+    def end_program(self):
+        # end program
+        for i in range(20):
+            for cf in self.cfs:
+                cf.cmdVel(0., 0., 0., 0.)
+            self.timeHelper.sleepForRate(100)
+        for i in range(self.num_cf):    
+            self.nodes[i].destroy_node()
+        rclpy.shutdown()
 
 class FakeEnv(EnvBase):
     REGISTRY: Dict[str, Type["FakeEnv"]] = {}
 
-    def __init__(self, cfg, headless):
+    def __init__(self, cfg, connection, swarm):
         super().__init__(
             device=cfg.sim.device, batch_size=[cfg.env.num_envs], run_type_checks=False
         )
@@ -86,18 +194,20 @@ class FakeEnv(EnvBase):
         self.cfg = cfg
         # extract commonly used parameters
         self.num_envs = self.cfg.env.num_envs
+        self.connection = connection
+        self.num_cf = 2
+        self.progress_buf = 0
 
         torch.backends.cudnn.benchmark = True
         torch.backends.cudnn.deterministic = False
         self._set_specs()
-        self.batch_size = [1]
-
-        self.num_cf = 1
-        self.drone_state = torch.zeros((self.num_cf, 16))
-        self.drone_state[0][3] = 1.
-        self.drone_state[0][2] = 0.5
-
-        self.progress_buf = 0
+        self.batch_size = [self.num_envs]
+        if connection:
+            self.swarm = swarm
+            self.num_cf = self.swarm.num_cf
+        else:
+            self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
+            self.drone_state[..., 3] = 1. # default rotation
 
     @property
     def agent_spec(self):
@@ -120,14 +230,12 @@ class FakeEnv(EnvBase):
         return self._compute_state_and_obs()
 
     def _step(self, tensordict: TensorDictBase) -> TensorDictBase:
-        # self.drone_state[0][2] = 0.1 * self.cnt
         tensordict = TensorDict({"next": {}}, self.batch_size)
         obs = self._compute_state_and_obs()
         tensordict["next"].update(obs)
         tensordict["next"].update(self._compute_reward_and_done())
         tensordict.update(obs)
         self.progress_buf += 1
-        # print(tensordict[('next', 'agents', 'observation')])
         return tensordict
 
     @abc.abstractmethod
@@ -149,34 +257,12 @@ class FakeEnv(EnvBase):
         return self
     
     def update_drone_state(self):
+        if self.connection:
+            self.drone_state = self.swarm.get_drone_state()
         rot = self.drone_state[..., 3:7]
         self.drone_state[..., 10:13] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
         self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()
 
-    def update_drone_pos(self, log):
-        id = 0
-        # position
-        # print('called pos')
-        self.drone_state[id][0] = log.values[0]
-        self.drone_state[id][1] = log.values[1]
-        self.drone_state[id][2] = log.values[2]
-
-    def update_drone_quat(self, log):
-        id = 0
-        # rotation
-        # print('called quat')
-        self.drone_state[id][3] = log.values[0]
-        self.drone_state[id][4] = log.values[1]
-        self.drone_state[id][5] = log.values[2]
-        self.drone_state[id][6] = log.values[3]
-
-    def update_drone_vel(self, log):
-        id = 0
-        # velocity
-        # print('called vel')
-        self.drone_state[id][7] = log.values[0]
-        self.drone_state[id][8] = log.values[1]
-        self.drone_state[id][9] = log.values[2]
 
 class _AgentSpecView(Dict[str, AgentSpec]):
     def __init__(self, env: FakeEnv):

@@ -102,6 +102,7 @@ class FakeEnv(EnvBase):
         self.num_cf = len(self.cfs)
         self.drone_state = torch.zeros((self.num_cf, 16))
         self.drone_state[0][3] = 1. # default rotation
+        self.progress_buf = 0
 
         # self.executor = MultiThreadedExecutor()
         for cf in self.cfs:
@@ -126,6 +127,7 @@ class FakeEnv(EnvBase):
         return
         
     def _reset(self, tensordict: TensorDictBase, **kwargs) -> TensorDictBase:
+        self.progress_buf = 0
         return self._compute_state_and_obs()
 
     def _step(self, tensordict: TensorDictBase) -> TensorDictBase:
@@ -134,6 +136,7 @@ class FakeEnv(EnvBase):
         tensordict["next"].update(obs)
         tensordict["next"].update(self._compute_reward_and_done())
         tensordict.update(obs)
+        self.progress_buf += 1
         # print(tensordict[('next', 'agents', 'observation')])
         return tensordict
 
