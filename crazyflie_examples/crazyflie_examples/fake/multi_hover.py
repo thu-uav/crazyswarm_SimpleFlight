@@ -12,10 +12,10 @@ class MultiHover(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
+        self.num_cf = 3
         super().__init__(cfg, connection, swarm)
-        self.num_cf = 2
         
-        self.target_pos = torch.tensor([[0., .5, .5], [0., -.5, .5]])
+        self.target_pos = torch.zeros((1, self.num_cf))
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]

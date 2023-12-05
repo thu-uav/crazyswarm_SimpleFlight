@@ -6,5 +6,5 @@ crazyswarm2_sim_webots/
 wandb/
 *.csv
 outputs/
-*.pt
 *.json
+rl_data/

@@ -79,7 +79,7 @@ def main(cfg):
         swarm.init()
 
         # real policy rollout
-        for timestep in range(500):
+        for timestep in range(700):
             
             data = policy(data, deterministic=True)
             data_frame.append(data)
@@ -93,6 +93,9 @@ def main(cfg):
             dt = cur_time - last_time
             print('time', dt)
             last_time = cur_time
+
+            if timestep > 500:
+                base_env.target_pos = torch.tensor([[0., .5, .2], [0., -.5, .2]])
 
     swarm.end_program()
     torch.save(data_frame, "hover.pt")

@@ -17,6 +17,7 @@ class FakeTrack(FakeEnv):
         self.cfg = cfg
         self.future_traj_steps = 4
         self.dt = 0.02
+        self.num_cf = 1
 
         super().__init__(cfg, connection, swarm)
 
@@ -104,7 +105,10 @@ class FakeTrack(FakeEnv):
         }, self.num_envs)
 
     def _compute_reward_and_done(self) -> TensorDictBase:
-        reward = torch.zeros((self.num_envs, 1, 1))
+        distance = torch.norm(self.rpos[:, [0]], dim=-1)
+        # reward = torch.zeros((self.num_envs, 1, 1))
+        # reward[..., 0] = distance.mean()
+        reward = distance
         done = torch.zeros((self.num_envs, 1, 1)).bool()
         return TensorDict(
             {

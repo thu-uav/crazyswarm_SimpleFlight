@@ -12,6 +12,7 @@ class FakeHover(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
+        self.num_cf = 1
         super().__init__(cfg, connection, swarm)
         
         self.target_pos = torch.tensor([[0., 0., 1.]])   

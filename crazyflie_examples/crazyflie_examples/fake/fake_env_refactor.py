@@ -92,25 +92,44 @@ class FakeRobot():
         drone_state[0][8] = log.values[1]
         drone_state[0][9] = log.values[2]
 
-    def update_drone_pos_2(self, log, drone_state):
+    def update_drone_pos_1(self, log, drone_state):
         drone_state[1][0] = log.values[0]
         drone_state[1][1] = log.values[1]
         drone_state[1][2] = log.values[2]
 
-    def update_drone_quat_2(self, log, drone_state):
+    def update_drone_quat_1(self, log, drone_state):
         drone_state[1][3] = log.values[0]
         drone_state[1][4] = log.values[1]
         drone_state[1][5] = log.values[2]
         drone_state[1][6] = log.values[3]
 
-    def update_drone_vel_2(self, log, drone_state):
+    def update_drone_vel_1(self, log, drone_state):
         drone_state[1][7] = log.values[0]
         drone_state[1][8] = log.values[1]
         drone_state[1][9] = log.values[2]
 
+    def update_drone_pos_2(self, log, drone_state):
+        drone_state[2][0] = log.values[0]
+        drone_state[2][1] = log.values[1]
+        drone_state[2][2] = log.values[2]
+
+    def update_drone_quat_2(self, log, drone_state):
+        drone_state[2][3] = log.values[0]
+        drone_state[2][4] = log.values[1]
+        drone_state[2][5] = log.values[2]
+        drone_state[2][6] = log.values[3]
+
+    def update_drone_vel_2(self, log, drone_state):
+        drone_state[2][7] = log.values[0]
+        drone_state[2][8] = log.values[1]
+        drone_state[2][9] = log.values[2]
+        
 class Swarm():
-    def __init__(self, cfg):
+    def __init__(self, cfg, test=False):
         self.cfg = cfg
+        self.test = test
+        if self.test:
+            return
         self.swarm = Crazyswarm()
         self.timeHelper = self.swarm.timeHelper
         self.cfs = self.swarm.allcfs.crazyflies
@@ -131,6 +150,13 @@ class Swarm():
                     lambda x: drone.update_drone_vel(x, self.drone_state), 
                 )
             elif id == 1:
+                node = Subscriber(
+                    cf.prefix, 
+                    lambda x: drone.update_drone_pos_1(x, self.drone_state), 
+                    lambda x: drone.update_drone_quat_1(x, self.drone_state), 
+                    lambda x: drone.update_drone_vel_1(x, self.drone_state), 
+                )
+            elif id == 2:
                 node = Subscriber(
                     cf.prefix, 
                     lambda x: drone.update_drone_pos_2(x, self.drone_state), 
@@ -156,17 +182,20 @@ class Swarm():
                 rclpy.spin_once(self.nodes[i]) # vel
         return self.drone_state
     
-    def act(self, all_action):
+    def act(self, all_action, rpy_scale=30):
+        if self.test:
+            return
         for id in range(self.num_cf):
             action = all_action[0][id].cpu().numpy().astype(float)
             cf = self.cfs[id]
             thrust = (action[3] + 1) / 2
             thrust = float(max(0, min(0.9, thrust)))
-            rpy_scale = 30
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
         self.timeHelper.sleepForRate(50)
 
     def init(self):
+        if self.test:
+            return
         # send several 0-thrust commands to prevent thrust deadlock
         for i in range(20):
             for cf in self.cfs:
@@ -174,6 +203,8 @@ class Swarm():
             self.timeHelper.sleepForRate(100)
 
     def end_program(self):
+        if self.test:
+            return
         # end program
         for i in range(20):
             for cf in self.cfs:
@@ -195,7 +226,6 @@ class FakeEnv(EnvBase):
         # extract commonly used parameters
         self.num_envs = self.cfg.env.num_envs
         self.connection = connection
-        self.num_cf = 2
         self.progress_buf = 0
 
         torch.backends.cudnn.benchmark = True
