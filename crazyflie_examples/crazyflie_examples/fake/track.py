@@ -16,7 +16,7 @@ class FakeTrack(FakeEnv):
         self.num_envs = 1
         self.cfg = cfg
         self.future_traj_steps = 4
-        self.dt = 0.02
+        self.dt = 0.01
         self.num_cf = 1
 
         super().__init__(cfg, connection, swarm)
@@ -26,16 +26,16 @@ class FakeTrack(FakeEnv):
             torch.tensor([0., 0., 0.], device=self.device) * torch.pi
         )
         self.traj_c_dist = D.Uniform(
-            torch.tensor(-0.1, device=self.device),
-            torch.tensor(0.1, device=self.device)
+            torch.tensor(-0., device=self.device),
+            torch.tensor(0., device=self.device)
         )
         self.traj_scale_dist = D.Uniform( # smaller than training
             torch.tensor([1.8, 1.8, 1.], device=self.device),
             torch.tensor([2., 2., 1.], device=self.device)
         )
         self.traj_w_dist = D.Uniform(
-            torch.tensor(0.8, device=self.device),
-            torch.tensor(1.1, device=self.device)
+            torch.tensor(1.0, device=self.device),
+            torch.tensor(1.0, device=self.device)
         )
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
 
@@ -53,6 +53,8 @@ class FakeTrack(FakeEnv):
         self.traj_scale[env_ids] = self.traj_scale_dist.sample(env_ids.shape)
         traj_w = self.traj_w_dist.sample(env_ids.shape)
         self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
+
+        self.target_poses = []
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -83,12 +85,18 @@ class FakeTrack(FakeEnv):
             "terminated": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
             "truncated": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
         }).expand(self.num_envs).to(self.device)
+        self.info_spec = CompositeSpec({
+            "agents": CompositeSpec({
+                "target_position": UnboundedContinuousTensorSpec((1, 3), device=self.device),
+                "real_position": UnboundedContinuousTensorSpec((1, 3), device=self.device),
+            })
+        }).expand(self.num_envs).to(self.device)
         self.agent_spec["drone"] = AgentSpec(
             "drone", 1,
             observation_key=("agents", "observation"),
             action_key=("agents", "action"),
             reward_key=("agents", "reward"),
-            state_key=("agents", "intrinsics")
+            state_key=("agents", "intrinsics"),
         )
 
     def _compute_state_and_obs(self) -> TensorDictBase:
@@ -98,14 +106,18 @@ class FakeTrack(FakeEnv):
         obs = [self.rpos.flatten(1), self.drone_state[..., 3:], torch.zeros((self.num_cf, 4))]
         obs = torch.concat(obs, dim=1).unsqueeze(0)
 
+        # self.target_poses.append(self.target_pos[-1].clone())
+
         return TensorDict({
             "agents": {
                 "observation": obs,
+                "target_position": self.target_pos[..., 0, :],
+                "real_position": self.drone_state[..., :3]
             },
         }, self.num_envs)
 
     def _compute_reward_and_done(self) -> TensorDictBase:
-        distance = torch.norm(self.rpos[:, [0]], dim=-1)
+        distance = torch.norm(self.rpos[:, [0]][:2], dim=-1)
         # reward = torch.zeros((self.num_envs, 1, 1))
         # reward[..., 0] = distance.mean()
         reward = distance
@@ -128,9 +140,13 @@ class FakeTrack(FakeEnv):
         traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
         target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
+        # target_pos = vmap(circle)(t)
         target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
 
         return self.origin + target_pos
+
+    def save_target_traj(self, name):
+        torch.save(self.target_poses, name)
 
 def lemniscate(t, c):
     sin_t = torch.sin(t)
@@ -140,6 +156,15 @@ def lemniscate(t, c):
     x = torch.stack([
         cos_t, sin_t * cos_t, c * sin_t
     ], dim=-1) / sin2p1.unsqueeze(-1)
+
+    return x
+
+def circle(t):
+    sin_t = torch.sin(t)
+    cos_t = torch.cos(t)
+    x = torch.stack([
+        cos_t, sin_t, torch.zeros_like(sin_t)
+    ], dim=-1)
 
     return x
 

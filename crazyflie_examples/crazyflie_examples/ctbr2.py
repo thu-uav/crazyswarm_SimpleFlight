@@ -14,8 +14,8 @@ def goCircle(timeHelper, cf):
     cf.setParam("flightmode.stabModeRoll", 0)
     cf.setParam("flightmode.stabModePitch", 0)
     cf.setParam("flightmode.stabModeYaw", 0)
-    cf.takeoff(targetHeight=0.5, duration=2.5)
-    timeHelper.sleep(5.0)
+    # cf.takeoff(targetHeight=0.5, duration=2.5)
+    # timeHelper.sleep(5.0)
 
     print("start stage one")
 

@@ -22,23 +22,23 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf2:
-    enabled: true
-    uri: radio://0/80/2M/E7E7E7E702
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
-
-  cf9:
-    enabled: true
-    uri: radio://0/80/2M/E7E7E7E709
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
-
-  # cf8:
+  # cf2:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E708
+  #   uri: radio://0/80/2M/E7E7E7E702
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
+
+  # cf9:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E709
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+
+  cf8:
+    enabled: true
+    uri: radio://0/80/2M/E7E7E7E708
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
   # cf9:
   #   enabled: true
@@ -50,11 +50,11 @@ robots:
   #   uri: radio://0/80/2M/E7E7E7E703
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
-  cf4:
-    enabled: true
-    uri: radio://0/80/2M/E7E7E7E704
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf4:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E704
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
   
 # Definition of the various robot types
 robot_types:

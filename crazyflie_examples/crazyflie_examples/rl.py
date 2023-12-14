@@ -60,7 +60,7 @@ def main(cfg):
     agent_spec: AgentSpec = base_env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
     
-    ckpt_name = "model/1128_mlp.pt"
+    ckpt_name = "model/cjy.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -81,15 +81,15 @@ def main(cfg):
         swarm.init()
 
         # real policy rollout
-        for timestep in range(600):
+        for timestep in range(1000):
             
             data = policy(data, deterministic=True)
-            data_frame.append(data)
             action = torch.tanh(data[("agents", "action")])
             swarm.act(action)
 
             data = base_env.step(data)
             data = step_mdp(data)
+            data_frame.append(data.clone())
 
             # if i == 300:
             #     base_env.target_pos = torch.tensor([[0., 1., .5]])
@@ -100,8 +100,11 @@ def main(cfg):
             # if i == 900:
             #     base_env.target_pos = torch.tensor([[0., 0., .5]])
 
-            if timestep == 300:
-                base_env.target_pos = torch.tensor([[0., 0., .1]])
+            if timestep == 600:
+                base_env.target_pos = torch.tensor([[0., 0., .5]])
+            
+            if timestep == 800:
+                base_env.target_pos = torch.tensor([[0., 0., .2]])
             
             cur_time = time.time()
             dt = cur_time - last_time
@@ -109,7 +112,7 @@ def main(cfg):
             last_time = cur_time
 
     swarm.end_program()
-    torch.save(data_frame, "hover.pt")
+    torch.save(data_frame, "rl_data/hover_cjy.pt")
 
 if __name__ == "__main__":
     main()

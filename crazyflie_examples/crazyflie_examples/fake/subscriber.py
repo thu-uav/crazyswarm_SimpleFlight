@@ -24,3 +24,13 @@ class Subscriber(Node):
             name + '/vel',
             call_back_vel,
             1)
+
+class TFSubscriber(Node):
+    def __init__(self, call_back):
+        super().__init__('subscriber_tf')
+        
+        self.subscription = self.create_subscription(
+            TFMessage,
+            '/tf',
+            call_back,
+            1)

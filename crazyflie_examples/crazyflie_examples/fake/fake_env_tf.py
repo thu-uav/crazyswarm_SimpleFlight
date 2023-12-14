@@ -25,7 +25,7 @@ from crazyflie_interfaces.msg import LogDataGeneric
 import rclpy
 from multiprocessing import Process
 from rclpy.executors import MultiThreadedExecutor
-from .subscriber import Subscriber
+from .subscriber import TFSubscriber
 
 def quat_rotate(q: torch.Tensor, v: torch.Tensor):
     shape = q.shape
@@ -76,59 +76,12 @@ class FakeRobot():
         self.n = 1
         self.id = id
 
-    def update_drone_pos(self, log, drone_state):
-        drone_state[0][0] = log.values[0]
-        drone_state[0][1] = log.values[1]
-        drone_state[0][2] = log.values[2]
-
-    def update_drone_quat(self, log, drone_state):
-        drone_state[0][3] = log.values[0]
-        drone_state[0][4] = log.values[1]
-        drone_state[0][5] = log.values[2]
-        drone_state[0][6] = log.values[3]
-
-    def update_drone_vel(self, log, drone_state):
-        drone_state[0][7] = log.values[0]
-        drone_state[0][8] = log.values[1]
-        drone_state[0][9] = log.values[2]
-
-    def update_drone_pos_1(self, log, drone_state):
-        drone_state[1][0] = log.values[0]
-        drone_state[1][1] = log.values[1]
-        drone_state[1][2] = log.values[2]
-
-    def update_drone_quat_1(self, log, drone_state):
-        drone_state[1][3] = log.values[0]
-        drone_state[1][4] = log.values[1]
-        drone_state[1][5] = log.values[2]
-        drone_state[1][6] = log.values[3]
-
-    def update_drone_vel_1(self, log, drone_state):
-        drone_state[1][7] = log.values[0]
-        drone_state[1][8] = log.values[1]
-        drone_state[1][9] = log.values[2]
-
-    def update_drone_pos_2(self, log, drone_state):
-        drone_state[2][0] = log.values[0]
-        drone_state[2][1] = log.values[1]
-        drone_state[2][2] = log.values[2]
-
-    def update_drone_quat_2(self, log, drone_state):
-        drone_state[2][3] = log.values[0]
-        drone_state[2][4] = log.values[1]
-        drone_state[2][5] = log.values[2]
-        drone_state[2][6] = log.values[3]
-
-    def update_drone_vel_2(self, log, drone_state):
-        drone_state[2][7] = log.values[0]
-        drone_state[2][8] = log.values[1]
-        drone_state[2][9] = log.values[2]
-        
 class Swarm():
     def __init__(self, cfg, test=False, mass=1.):
         self.cfg = cfg
         self.test = test
         if self.test:
+            self.num_cf = 4
             return
         self.swarm = Crazyswarm()
         self.timeHelper = self.swarm.timeHelper
@@ -136,36 +89,19 @@ class Swarm():
         self.num_cf = len(self.cfs)
         self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
         self.drone_state[..., 3] = 1. # default rotation
-        self.nodes = []
         self.drones = []
-        id = 0
+        self.node = TFSubscriber(
+            self.update_drone_state
+        )
+        self.last_time = 0.
         self.mass = mass
-
+        
+        id = 0
+        self.cf_map = {}
         for cf in self.cfs:
             drone = FakeRobot(self.cfg.task, self.cfg.task.drone_model, device = cfg.sim.device, id=id)
-            if id == 0:
-                node = Subscriber(
-                    cf.prefix, 
-                    lambda x: drone.update_drone_pos(x, self.drone_state), 
-                    lambda x: drone.update_drone_quat(x, self.drone_state), 
-                    lambda x: drone.update_drone_vel(x, self.drone_state), 
-                )
-            elif id == 1:
-                node = Subscriber(
-                    cf.prefix, 
-                    lambda x: drone.update_drone_pos_1(x, self.drone_state), 
-                    lambda x: drone.update_drone_quat_1(x, self.drone_state), 
-                    lambda x: drone.update_drone_vel_1(x, self.drone_state), 
-                )
-            elif id == 2:
-                node = Subscriber(
-                    cf.prefix, 
-                    lambda x: drone.update_drone_pos_2(x, self.drone_state), 
-                    lambda x: drone.update_drone_quat_2(x, self.drone_state), 
-                    lambda x: drone.update_drone_vel_2(x, self.drone_state), 
-                )
             self.drones.append(drone)
-            self.nodes.append(node)
+            self.cf_map[cf.prefix[1:]] = id
             id += 1
 
             # set to CTBR mode
@@ -173,14 +109,24 @@ class Swarm():
             cf.setParam("flightmode.stabModePitch", 0)
             cf.setParam("flightmode.stabModeYaw", 0)
 
+    def update_drone_state(self, log):
+        last_pos = self.drone_state[...,:3].clone()
+        for tf in log.transforms:
+            time = tf.header.stamp.sec + tf.header.stamp.nanosec/1e9
+            drone_id = self.cf_map[tf.child_frame_id]
+            self.drone_state[drone_id][0] = tf.transform.translation.x
+            self.drone_state[drone_id][1] = tf.transform.translation.y
+            self.drone_state[drone_id][2] = tf.transform.translation.z
+            self.drone_state[drone_id][3] = tf.transform.rotation.w
+            self.drone_state[drone_id][4] = tf.transform.rotation.x
+            self.drone_state[drone_id][5] = tf.transform.rotation.y
+            self.drone_state[drone_id][6] = tf.transform.rotation.z
+        self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
+        self.last_time = time
 
     def get_drone_state(self):
         # update observation
-        if rclpy.ok():
-            for i in range(self.num_cf):
-                rclpy.spin_once(self.nodes[i]) # pos
-                rclpy.spin_once(self.nodes[i]) # quat
-                rclpy.spin_once(self.nodes[i]) # vel
+        rclpy.spin_once(self.node) 
         return self.drone_state
     
     def act(self, all_action, rpy_scale=30):
@@ -210,9 +156,8 @@ class Swarm():
         for i in range(20):
             for cf in self.cfs:
                 cf.cmdVel(0., 0., 0., 0.)
-            self.timeHelper.sleepForRate(100)
-        for i in range(self.num_cf):    
-            self.nodes[i].destroy_node()
+            self.timeHelper.sleepForRate(100)  
+        self.node.destroy_node()
         rclpy.shutdown()
 
 class FakeEnv(EnvBase):
