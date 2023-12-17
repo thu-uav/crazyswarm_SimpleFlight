@@ -3,15 +3,10 @@ import abc
 from typing import Dict, List, Optional, Tuple, Type, Union, Callable
 
 import torch
-import logging
-# import carb
-import numpy as np
-import yaml
 
 from tensordict.tensordict import TensorDict, TensorDictBase
 from torchrl.envs import EnvBase
 from functorch import vmap
-from omni_drones.utils.torch import quaternion_to_euler
 from omni_drones.utils.torchrl import AgentSpec
 import os.path as osp
 
@@ -33,6 +28,7 @@ def quat_axis(q, axis=0):
     basis_vec[:, axis] = 1
     return quat_rotate(q, basis_vec)
 
+
 class FakeEnv(EnvBase):
     REGISTRY: Dict[str, Type["FakeEnv"]] = {}
 
@@ -44,6 +40,7 @@ class FakeEnv(EnvBase):
         self.cfg = cfg
         # extract commonly used parameters
         self.num_envs = self.cfg.env.num_envs
+        self.num_obstacle = 1
         self.connection = connection
         self.progress_buf = 0
 
@@ -57,6 +54,7 @@ class FakeEnv(EnvBase):
         else:
             self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
             self.drone_state[..., 3] = 1. # default rotation
+            self.obstacle_state = torch.zeros((self.num_obstacle, 6))
 
     @property
     def agent_spec(self):
@@ -107,7 +105,7 @@ class FakeEnv(EnvBase):
     
     def update_drone_state(self):
         if self.connection:
-            self.drone_state = self.swarm.get_drone_state()
+            self.drone_state, self.obstacle_state = self.swarm.get_drone_state()
         rot = self.drone_state[..., 3:7]
         self.drone_state[..., 10:13] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
         self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()

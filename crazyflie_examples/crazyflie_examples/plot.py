@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-data = torch.load('rl_data/8_remake.pt')
+data = torch.load('rl_data/square_2.pt')
 
 x = []
 y = []
@@ -40,4 +40,4 @@ colors = color_map(error)
 ax.scatter(x, y, z, s=5, c=colors)
 ax.set_zlim3d(0.,1.1)
 ax.plot(target_x, target_y, target_z)
-plt.savefig('8_remake_'+str(mean_e) + '.png')
+plt.savefig('square_2_'+str(mean_e) + '.png')

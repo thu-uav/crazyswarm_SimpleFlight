@@ -2,8 +2,7 @@ import functorch
 import torch
 import torch.distributions as D
 
-from .fake_env_refactor import AgentSpec, FakeEnv, FakeRobot
-from omni_drones.utils.torch import euler_to_quaternion, quat_axis
+from .fake_env import AgentSpec, FakeEnv
 
 from torchrl.data import UnboundedContinuousTensorSpec, CompositeSpec, DiscreteTensorSpec, BoundedTensorSpec
 from tensordict.tensordict import TensorDict, TensorDictBase

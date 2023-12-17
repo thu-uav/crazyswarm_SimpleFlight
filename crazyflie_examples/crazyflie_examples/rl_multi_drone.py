@@ -46,14 +46,13 @@ def main(cfg):
     OmegaConf.set_struct(cfg, False)
     print(OmegaConf.to_yaml(cfg))
 
-    time.sleep(5)
     algos = {
         "ppo": PPOPolicy,
         # "ppo_adaptive": PPOAdaptivePolicy,
         "ppo_rnn": PPORNNPolicy,
         "mappo": MAPPOPolicy, 
     }
-    swarm = Swarm(cfg)
+    swarm = Swarm(cfg,)
     base_env = MultiHover(cfg, connection=True, swarm=swarm)
 
     base_env.set_seed(cfg.seed)
@@ -72,17 +71,20 @@ def main(cfg):
 
         # update observation
         data = base_env.step(data) 
-
+        
         last_time = time.time()
         data_frame = []
 
         swarm.init()
 
+        data = base_env.step(data)
+        base_env.target_pos[..., :2] = base_env.drone_state[..., :2]
+
         # real policy rollout
-        for timestep in range(700):
+        for timestep in range(500):
             
             data = policy(data, deterministic=True)
-            data_frame.append(data)
+            data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
             swarm.act(action)
 
@@ -94,11 +96,11 @@ def main(cfg):
             print('time', dt)
             last_time = cur_time
 
-            if timestep > 500:
-                base_env.target_pos = torch.tensor([[0., .5, .2], [0., -.5, .2]])
+            if timestep > 300:
+                base_env.target_pos[..., 2] = 0.2
 
     swarm.end_program()
-    torch.save(data_frame, "hover.pt")
+    torch.save(data_frame, "rl_data/multi_hover.pt")
 
 if __name__ == "__main__":
     main()

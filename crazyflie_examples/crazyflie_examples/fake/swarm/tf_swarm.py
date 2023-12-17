@@ -1,45 +1,12 @@
-import abc
-
-from typing import Dict, List, Optional, Tuple, Type, Union, Callable
-
-import torch
-import logging
-# import carb
-import numpy as np
-import yaml
-
-from tensordict.tensordict import TensorDict, TensorDictBase
-from torchrl.data import CompositeSpec, TensorSpec, DiscreteTensorSpec, BoundedTensorSpec, UnboundedContinuousTensorSpec
-from torchrl.envs import EnvBase
-from functorch import vmap
-from omni_drones.utils.torch import quaternion_to_euler
-from omni_drones.utils.torchrl import AgentSpec
-import os.path as osp
-
-import sys
-sys.path.append('..')
-import time
-
 from crazyflie_py import Crazyswarm
 from crazyflie_interfaces.msg import LogDataGeneric
 import rclpy
+import torch
 from multiprocessing import Process
 from rclpy.executors import MultiThreadedExecutor
 from .subscriber import TFSubscriber
+from torchrl.data import CompositeSpec, TensorSpec, DiscreteTensorSpec, BoundedTensorSpec, UnboundedContinuousTensorSpec
 
-def quat_rotate(q: torch.Tensor, v: torch.Tensor):
-    shape = q.shape
-    q_w = q[:, 0]
-    q_vec = q[:, 1:]
-    a = v * (2.0 * q_w ** 2 - 1.0).unsqueeze(-1)
-    b = torch.cross(q_vec, v, dim=-1) * q_w.unsqueeze(-1) * 2.0
-    c = q_vec * torch.bmm(q_vec.view(shape[0], 1, 3), v.view(shape[0], 3, 1)).squeeze(-1) * 2.0
-    return a + b + c
-
-def quat_axis(q, axis=0):
-    basis_vec = torch.zeros(q.shape[0], 3, device=q.device)
-    basis_vec[:, axis] = 1
-    return quat_rotate(q, basis_vec)
 
 class FakeRobot():
     def __init__(self, cfg, name, device, id):
@@ -81,13 +48,15 @@ class Swarm():
         self.cfg = cfg
         self.test = test
         if self.test:
-            self.num_cf = 4
+            self.num_cf = 3
             return
         self.swarm = Crazyswarm()
         self.timeHelper = self.swarm.timeHelper
         self.cfs = self.swarm.allcfs.crazyflies
         self.num_cf = len(self.cfs)
         self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
+        self.num_obstacle = 1
+        self.obstacle_state = torch.zeros((self.num_obstacle, 6)) # position, velocity
         self.drone_state[..., 3] = 1. # default rotation
         self.drones = []
         self.node = TFSubscriber(
@@ -111,8 +80,15 @@ class Swarm():
 
     def update_drone_state(self, log):
         last_pos = self.drone_state[...,:3].clone()
+        last_obstacle = self.obstacle_state[..., :3].clone()
         for tf in log.transforms:
             time = tf.header.stamp.sec + tf.header.stamp.nanosec/1e9
+            if tf.child_frame_id == "obs":
+                self.obstacle_state[0][0] = tf.transform.translation.x
+                self.obstacle_state[0][1] = tf.transform.translation.y
+                self.obstacle_state[0][2] = tf.transform.translation.z
+            if tf.child_frame_id not in self.cf_map.keys():
+                continue
             drone_id = self.cf_map[tf.child_frame_id]
             self.drone_state[drone_id][0] = tf.transform.translation.x
             self.drone_state[drone_id][1] = tf.transform.translation.y
@@ -122,12 +98,13 @@ class Swarm():
             self.drone_state[drone_id][5] = tf.transform.rotation.y
             self.drone_state[drone_id][6] = tf.transform.rotation.z
         self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
+        self.obstacle_state[..., 3:6] = (self.obstacle_state[..., :3] - last_obstacle) / (time - self.last_time)
         self.last_time = time
-
+        
     def get_drone_state(self):
         # update observation
         rclpy.spin_once(self.node) 
-        return self.drone_state
+        return self.drone_state, self.obstacle_state
     
     def act(self, all_action, rpy_scale=30):
         if self.test:
@@ -147,7 +124,7 @@ class Swarm():
         for i in range(20):
             for cf in self.cfs:
                 cf.cmdVel(0.,0.,0.,0.)
-            self.timeHelper.sleepForRate(100)
+            self.timeHelper.sleepForRate(50)
 
     def end_program(self):
         if self.test:
@@ -156,96 +133,6 @@ class Swarm():
         for i in range(20):
             for cf in self.cfs:
                 cf.cmdVel(0., 0., 0., 0.)
-            self.timeHelper.sleepForRate(100)  
+            self.timeHelper.sleepForRate(50)  
         self.node.destroy_node()
         rclpy.shutdown()
-
-class FakeEnv(EnvBase):
-    REGISTRY: Dict[str, Type["FakeEnv"]] = {}
-
-    def __init__(self, cfg, connection, swarm):
-        super().__init__(
-            device=cfg.sim.device, batch_size=[cfg.env.num_envs], run_type_checks=False
-        )
-        # store inputs to class
-        self.cfg = cfg
-        # extract commonly used parameters
-        self.num_envs = self.cfg.env.num_envs
-        self.connection = connection
-        self.progress_buf = 0
-
-        torch.backends.cudnn.benchmark = True
-        torch.backends.cudnn.deterministic = False
-        self._set_specs()
-        self.batch_size = [self.num_envs]
-        if connection:
-            self.swarm = swarm
-            self.num_cf = self.swarm.num_cf
-        else:
-            self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
-            self.drone_state[..., 3] = 1. # default rotation
-
-    @property
-    def agent_spec(self):
-        if not hasattr(self, "_agent_spec"):
-            self._agent_spec = {}
-        return _AgentSpecView(self)
-    
-    @agent_spec.setter
-    def agent_spec(self, value):
-        raise AttributeError(
-            "Do not set agent_spec directly."
-            "Use `self.agent_spec[agent_name] = AgentSpec(...)` instead."
-        )
-
-    def close(self):
-        return
-        
-    def _reset(self, tensordict: TensorDictBase, **kwargs) -> TensorDictBase:
-        self.progress_buf = 0
-        return self._compute_state_and_obs()
-
-    def _step(self, tensordict: TensorDictBase) -> TensorDictBase:
-        tensordict = TensorDict({"next": {}}, self.batch_size)
-        obs = self._compute_state_and_obs()
-        tensordict["next"].update(obs)
-        tensordict["next"].update(self._compute_reward_and_done())
-        tensordict.update(obs)
-        self.progress_buf += 1
-        return tensordict
-
-    @abc.abstractmethod
-    def _compute_state_and_obs(self) -> TensorDictBase:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def _compute_reward_and_done(self) -> TensorDictBase:
-        raise NotImplementedError
-
-    def _set_seed(self, seed: Optional[int] = -1):
-        torch.manual_seed(seed)
-
-    def to(self, device) -> EnvBase:
-        if torch.device(device) != self.device:
-            raise RuntimeError(
-                f"Cannot move IsaacEnv on {self.device} to a different device {device} once it's initialized."
-            )
-        return self
-    
-    def update_drone_state(self):
-        if self.connection:
-            self.drone_state = self.swarm.get_drone_state()
-        rot = self.drone_state[..., 3:7]
-        self.drone_state[..., 10:13] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
-        self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()
-
-
-class _AgentSpecView(Dict[str, AgentSpec]):
-    def __init__(self, env: FakeEnv):
-        super().__init__(env._agent_spec)
-        self.env = env
-
-    def __setitem__(self, k: str, v: AgentSpec) -> None:
-        v._env = self.env
-        return self.env._agent_spec.__setitem__(k, v)
-

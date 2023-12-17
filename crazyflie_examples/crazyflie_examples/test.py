@@ -18,13 +18,19 @@ import numpy as np
 #     # print(rpos)
 
 
-data = torch.load('rl_data/circle_remake2.pt')
-for i in range(200,205):
-    print(data[i]['agents', 'target_position'])
-    print(data[i]['agents', 'real_position'])
-    print(data[i]['agents', 'observation'][..., :3])
+# data = torch.load('rl_data/circle_remake2.pt')
+# for i in range(200,205):
+#     print(data[i]['agents', 'target_position'])
+#     print(data[i]['agents', 'real_position'])
+#     print(data[i]['agents', 'observation'][..., :3])
 
-
+data = torch.load('rl_data/fb_3.pt')
+# print(len(data))
+for i in range(5):
+    # print(data[i]['agents', 'observation'][..., :3])
+    print(torch.tanh(data[i]['agents', 'action']))
+for i in range(501, 510):
+    print(torch.tanh(data[i]['agents', 'action']))
 # data = torch.load('8_1_demo.pt')
 # import csv
 # with open('8_1_target.csv', 'w', newline='') as csvfile:

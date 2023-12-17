@@ -2,8 +2,7 @@ import functorch
 import torch
 import torch.distributions as D
 
-from .fake_env_refactor import AgentSpec, FakeEnv, FakeRobot
-from omni_drones.utils.torch import euler_to_quaternion, quat_axis
+from .fake_env import AgentSpec, FakeEnv
 
 from torchrl.data import UnboundedContinuousTensorSpec, CompositeSpec, DiscreteTensorSpec, BoundedTensorSpec
 from tensordict.tensordict import TensorDict, TensorDictBase
@@ -12,10 +11,11 @@ class MultiHover(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
-        self.num_cf = 4
+        self.num_cf = 3
         super().__init__(cfg, connection, swarm)
         
         self.target_pos = torch.zeros((self.num_cf, 3))
+        self.target_pos[..., 2] = 0.5
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -28,6 +28,7 @@ class MultiHover(FakeEnv):
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
                 "observation": UnboundedContinuousTensorSpec((self.num_cf, observation_dim), device=self.device),
+                # "position": UnboundedContinuousTensorSpec((self.num_cf, 3), device=self.device),
             })
         }).expand(self.num_envs).to(self.device)
         self.action_spec = CompositeSpec({
@@ -62,6 +63,7 @@ class MultiHover(FakeEnv):
         return TensorDict({
             "agents": {
                 "observation": obs,
+                # "position": self.drone_state[..., :3].unsqueeze(0)
             },
         }, self.num_envs)
 

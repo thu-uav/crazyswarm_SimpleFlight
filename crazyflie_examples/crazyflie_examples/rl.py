@@ -60,7 +60,7 @@ def main(cfg):
     agent_spec: AgentSpec = base_env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
     
-    ckpt_name = "model/cjy.pt"
+    ckpt_name = "model/1128_mlp.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -112,7 +112,7 @@ def main(cfg):
             last_time = cur_time
 
     swarm.end_program()
-    torch.save(data_frame, "rl_data/hover_cjy.pt")
+    torch.save(data_frame, "rl_data/hover.pt")
 
 if __name__ == "__main__":
     main()

@@ -79,11 +79,12 @@ FORMATIONS = {
     'triangle': REGULAR_TRIANGLE,
 }
 
-class Formation(FakeEnv):
+class FormationBall(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
         self.num_cf = 3
+        self.num_obstacle = 1
         super().__init__(cfg, connection, swarm)
         self.time_encoding = True
         self.drone_id = torch.Tensor(np.arange(self.num_cf))
@@ -104,10 +105,11 @@ class Formation(FakeEnv):
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
                 "observation": UnboundedContinuousTensorSpec(
-                    (self.num_cf, observation_dim + (self.num_cf-1)*11), device=self.device),
+                    (self.num_cf, observation_dim + (self.num_cf-1)*11 + self.num_obstacle * 7), device=self.device),
                 # CompositeSpec({
                 #     "obs_self": UnboundedContinuousTensorSpec((1, observation_dim)), # 23
                 #     "obs_others": UnboundedContinuousTensorSpec((self.num_cf-1, 10+1)), # 11
+                #     "attn_obs_ball": UnboundedContinuousTensorSpec((self.num_obstacle, 3+1+3)),
                 # }).expand(self.num_cf),
             })
         }).expand(self.num_envs).to(self.device)
@@ -137,6 +139,9 @@ class Formation(FakeEnv):
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
 
+        # for checkpoints with varying heights, we need to adjust height
+        self.drone_state[..., 2] += 0.5
+
         obs_self = [self.drone_state, torch.zeros((self.num_cf, 4))]
         if self.cfg.algo.share_actor:
             obs_self.append(self.drone_id.reshape(-1, 1).expand(-1, self.id_dim))
@@ -154,11 +159,28 @@ class Formation(FakeEnv):
             vmap(others)(self.drone_state[..., 3:10].unsqueeze(0))
         ], dim=-1)
 
-        obs = torch.cat([obs_self, obs_others.reshape(1, self.num_cf, -1)], dim=-1)
+        balls_pos = self.obstacle_state[..., :3].unsqueeze(0) # [env_num, ball_num, 3]
+
+        relative_b_pos = pos[..., :3].unsqueeze(2) - balls_pos.unsqueeze(1) # [env_num, drone_num, 1, 3] - [env_num, 1, ball_num, 3]
+        balls_vel = self.obstacle_state[..., 3:].unsqueeze(0).unsqueeze(0) # [env_num, 1, ball_num, 3]
+        self.relative_b_dis = torch.norm(relative_b_pos, p=2, dim=-1) # [env_num, drone_num, ball_num, 3] -> [env_num, drone_num, ball_num]
+        relative_b_dis = self.relative_b_dis # [env_num, drone_num, ball_num]
+
+        obs_ball = torch.cat([
+            relative_b_dis.unsqueeze(-1), 
+            relative_b_pos, 
+            balls_vel.expand_as(relative_b_pos)
+        ], dim=-1) #[env, agent, ball_num, *]
+
+        obs = torch.cat([
+            obs_self.reshape(1, self.num_cf, -1), 
+            obs_others.reshape(1, self.num_cf,  -1), 
+            obs_ball.reshape(1, self.num_cf, -1)], dim=-1)
 
         # obs = TensorDict({ 
         #     "obs_self": obs_self.unsqueeze(2),  # [N, K, 1, obs_self_dim]
         #     "obs_others": obs_others, # [N, K, K-1, obs_others_dim]
+        #     "attn_obs_ball": obs_ball,
         # }, [self.num_envs, self.num_cf]) # [N, K, n_i, m_i]
 
         return TensorDict({
