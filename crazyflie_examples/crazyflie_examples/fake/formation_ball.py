@@ -140,7 +140,7 @@ class FormationBall(FakeEnv):
         self.update_drone_state()
 
         # for checkpoints with varying heights, we need to adjust height
-        self.drone_state[..., 2] += 0.5
+        self.drone_state[..., 2] += 1.
 
         obs_self = [self.drone_state, torch.zeros((self.num_cf, 4))]
         if self.cfg.algo.share_actor:
@@ -171,11 +171,13 @@ class FormationBall(FakeEnv):
             relative_b_pos, 
             balls_vel.expand_as(relative_b_pos)
         ], dim=-1) #[env, agent, ball_num, *]
+        fake_obs_ball = torch.ones_like(obs_ball) * -1
 
         obs = torch.cat([
             obs_self.reshape(1, self.num_cf, -1), 
             obs_others.reshape(1, self.num_cf,  -1), 
-            obs_ball.reshape(1, self.num_cf, -1)], dim=-1)
+            fake_obs_ball.reshape(1, self.num_cf, -1),
+            ], dim=-1)
 
         # obs = TensorDict({ 
         #     "obs_self": obs_self.unsqueeze(2),  # [N, K, 1, obs_self_dim]

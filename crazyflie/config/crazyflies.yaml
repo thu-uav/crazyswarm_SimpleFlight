@@ -2,7 +2,7 @@
 robots:
   cf7:
     enabled: true
-    uri: radio://2/85/2M/E7E7E7E707
+    uri: radio://2/87/2M/E7E7E7E707
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
 
@@ -31,12 +31,17 @@ robots:
   #   uri: radio://0/90/2M/E7E7E7E704
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
-
-  cf8:
+  cf3:
     enabled: true
-    uri: radio://1/80/2M/E7E7E7E708
+    uri: radio://1/92/2M/E7E7E7E703
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
+
+  # cf8:
+  #   enabled: true
+  #   uri: radio://1/80/2M/E7E7E7E708
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
   
   # cf6:
   #   enabled: true
@@ -52,14 +57,10 @@ robots:
 
   # cf9:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E709
+  #   uri: radio://2/85/2M/E7E7E7E709
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
-  # cf3:
-  #   enabled: true
-  #   uri: radio://0/90/2M/E7E7E7E703
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+
 
 # Definition of the various robot types
 robot_types:
@@ -94,6 +95,9 @@ all:
       vel:
         frequency: 100 # Hz
         vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
+      omega:
+        frequency: 100 # Hz
+        vars: ["gyro.x", "gyro.y", "gyro.z"]
       # command_rpy:
       #   frequency: 100
       #   vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]

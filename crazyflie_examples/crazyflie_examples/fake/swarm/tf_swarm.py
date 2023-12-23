@@ -106,7 +106,7 @@ class Swarm():
         rclpy.spin_once(self.node) 
         return self.drone_state, self.obstacle_state
     
-    def act(self, all_action, rpy_scale=30):
+    def act(self, all_action, rpy_scale=30, rate=50):
         if self.test:
             return
         for id in range(self.num_cf):
@@ -115,7 +115,7 @@ class Swarm():
             thrust = (action[3] + 1) / 2 * self.mass
             thrust = float(max(0, min(0.9, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
-        self.timeHelper.sleepForRate(50)
+        self.timeHelper.sleepForRate(rate)
 
     def init(self):
         if self.test:

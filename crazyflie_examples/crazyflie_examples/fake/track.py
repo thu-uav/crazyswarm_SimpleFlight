@@ -140,9 +140,9 @@ class FakeTrack(FakeEnv):
         t = self.traj_t0 + scale_time(self.traj_w[env_ids].unsqueeze(1) * t * self.dt)
         traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
-        # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
+        target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
         # target_pos = vmap(circle)(t)
-        target_pos = square(t)
+        # target_pos = square(t)
         target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
 
         return self.origin + target_pos

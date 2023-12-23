@@ -8,3 +8,5 @@ wandb/
 outputs/
 *.json
 rl_data/
+test_model/
+test.py

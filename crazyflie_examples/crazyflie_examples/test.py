@@ -26,11 +26,13 @@ import numpy as np
 
 data = torch.load('rl_data/fb_3.pt')
 # print(len(data))
-for i in range(5):
-    # print(data[i]['agents', 'observation'][..., :3])
-    print(torch.tanh(data[i]['agents', 'action']))
-for i in range(501, 510):
-    print(torch.tanh(data[i]['agents', 'action']))
+# for i in range(5):
+#     # print(data[i]['agents', 'observation'][..., :3])
+#     print(torch.tanh(data[i]['agents', 'action']))
+for i in range(499, 505):
+    print(data[i]['agents', 'observation'][0])
+    action = torch.tanh(data[i]['agents', 'action'])
+    print((action+1)/2)
 # data = torch.load('8_1_demo.pt')
 # import csv
 # with open('8_1_target.csv', 'w', newline='') as csvfile:
