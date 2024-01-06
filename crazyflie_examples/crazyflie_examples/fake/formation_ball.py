@@ -105,7 +105,7 @@ class FormationBall(FakeEnv):
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
                 "observation": UnboundedContinuousTensorSpec(
-                    (self.num_cf, observation_dim + (self.num_cf-1)*11 + self.num_obstacle * 7), device=self.device),
+                    (self.num_cf, observation_dim + (self.num_cf-1)*4 + self.num_obstacle * 7), device=self.device),
                 # CompositeSpec({
                 #     "obs_self": UnboundedContinuousTensorSpec((1, observation_dim)), # 23
                 #     "obs_others": UnboundedContinuousTensorSpec((self.num_cf-1, 10+1)), # 11
@@ -138,9 +138,7 @@ class FormationBall(FakeEnv):
 
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
-
-        # for checkpoints with varying heights, we need to adjust height
-        self.drone_state[..., 2] += 1.
+        # print(self.drone_state[..., :3])
 
         obs_self = [self.drone_state, torch.zeros((self.num_cf, 4))]
         if self.cfg.algo.share_actor:
@@ -156,7 +154,7 @@ class FormationBall(FakeEnv):
         obs_others = torch.cat([
             relative_pos,
             self.drone_pdist,
-            vmap(others)(self.drone_state[..., 3:10].unsqueeze(0))
+            # vmap(others)(self.drone_state[..., 3:10].unsqueeze(0))
         ], dim=-1)
 
         balls_pos = self.obstacle_state[..., :3].unsqueeze(0) # [env_num, ball_num, 3]
@@ -171,12 +169,16 @@ class FormationBall(FakeEnv):
             relative_b_pos, 
             balls_vel.expand_as(relative_b_pos)
         ], dim=-1) #[env, agent, ball_num, *]
-        fake_obs_ball = torch.ones_like(obs_ball) * -1
+        if relative_b_dis.min().detach().cpu().item() > 1.:
+            obs_ball = torch.ones_like(obs_ball) * -1
+        else:
+            print("detect ball!")
+        # fake_obs_ball = torch.ones_like(obs_ball) * -1
 
         obs = torch.cat([
             obs_self.reshape(1, self.num_cf, -1), 
             obs_others.reshape(1, self.num_cf,  -1), 
-            fake_obs_ball.reshape(1, self.num_cf, -1),
+            obs_ball.reshape(1, self.num_cf, -1),
             ], dim=-1)
 
         # obs = TensorDict({ 

@@ -64,7 +64,7 @@ def main(cfg):
         "mappo": MAPPOPolicy, 
     }
 
-    swarm = Swarm(cfg, mass=32/27)
+    swarm = Swarm(cfg, test=False)
 
     # load takeoff checkpoint
     takeoff_ckpt = "model/1128_mlp.pt"
@@ -76,7 +76,8 @@ def main(cfg):
 
     formation_pos = torch.tensor(REGULAR_TRIANGLE) * 0.5
 
-    ckpt_name = "model/triangle_1216.pt"
+    # ckpt_name = "model/test_model/formation_1m_30deg.pt" # need 100Hz control frequency
+    ckpt_name = "model/test_model/formation_dodge_scratch.pt"
     base_env = FormationBall(cfg, connection=True, swarm=swarm)
 
     env = base_env
@@ -115,19 +116,22 @@ def main(cfg):
             # print('time', dt)
             last_time = cur_time
 
-            # if timestep == 300:
-            #     takeoff_env.target_pos = formation_pos + torch.tensor([0., 0, 1.]).expand_as(formation_pos)
+            if timestep == 300:
+                takeoff_env.target_pos = formation_pos + torch.tensor([0., 0, 1.]).expand_as(formation_pos)
+
+            # if timestep == 500:
+            #     takeoff_env.target_pos = formation_pos + torch.tensor([0., 0, 1.5]).expand_as(formation_pos)
 
         # real policy rollout
-        for _ in range(100):
+        for _ in range(1000):
             data = env.step(data) 
             data = step_mdp(data)
             
             data = policy(data, deterministic=True)
-            data_frame.append(data)
+            # data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action)
+            swarm.act(action,)
             data_frame.append(data.clone())
 
             cur_time = time.time()
@@ -136,8 +140,8 @@ def main(cfg):
             last_time = cur_time
 
         # land
-        takeoff_env.target_pos = formation_pos + torch.tensor([[0., 0, 0.5]]*swarm.num_cf)
-        for timestep in range(600):
+        takeoff_env.target_pos = formation_pos + torch.tensor([[0., 0, .5]]*swarm.num_cf)
+        for timestep in range(300):
             takeoff_data = takeoff_env.step(takeoff_data)
             takeoff_data = step_mdp(takeoff_data)
 
@@ -149,19 +153,19 @@ def main(cfg):
 
             cur_time = time.time()
             dt = cur_time - last_time
-            # print('time', dt)
+            print('time', dt)
             last_time = cur_time
 
             # if timestep == 300:
             #     takeoff_env.target_pos = formation_pos + torch.tensor([0, 0, .5]).expand_as(formation_pos)
 
-            if timestep == 400:
-                takeoff_env.target_pos = formation_pos + torch.tensor([[0., 0, 0.2]]*swarm.num_cf)
+            if timestep == 200:
+                takeoff_env.target_pos = formation_pos + torch.tensor([[0., 0, 0.3]]*swarm.num_cf)
 
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/fb_3.pt")
+    torch.save(data_frame, "rl_data/fb_3_new.pt")
 
 if __name__ == "__main__":
     main()

@@ -100,11 +100,11 @@ class Swarm():
         self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
         self.obstacle_state[..., 3:6] = (self.obstacle_state[..., :3] - last_obstacle) / (time - self.last_time)
         self.last_time = time
-        
+
     def get_drone_state(self):
         # update observation
         rclpy.spin_once(self.node) 
-        return self.drone_state, self.obstacle_state
+        return self.drone_state.clone(), self.obstacle_state.clone()
     
     def act(self, all_action, rpy_scale=30, rate=50):
         if self.test:
@@ -115,6 +115,18 @@ class Swarm():
             thrust = (action[3] + 1) / 2 * self.mass
             thrust = float(max(0, min(0.9, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
+        self.timeHelper.sleepForRate(rate)
+
+    # give cmd and act
+    def cmd_act(self, action, rate=50):
+        if self.test:
+            return
+        for id in range(self.num_cf):
+            # action = all_action[0][id].cpu().numpy().astype(float)
+            cf = self.cfs[id]
+            # thrust = 43300.0
+            thrust = 45000.0
+            cf.cmdVel(action[0], -action[1], action[2], thrust)
         self.timeHelper.sleepForRate(rate)
 
     def init(self):

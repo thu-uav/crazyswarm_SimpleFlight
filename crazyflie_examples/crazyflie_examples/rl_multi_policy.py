@@ -51,7 +51,11 @@ def main(cfg):
         "mappo": MAPPOPolicy, 
     }
 
-    swarm = Swarm(cfg, test=False, mass=32.1/31.05)
+    # swarm = Swarm(cfg, test=False, mass=31.6 / 34.3)
+    swarm = Swarm(cfg, test=False, mass=1.0)
+    # for cf in swarm.cfs:
+    #     cf.setParam("pid_rate.yaw_kp", 360)
+
     base_env = FakeHover(cfg, connection=True, swarm=swarm)
 
     # load takeoff checkpoint
@@ -63,6 +67,7 @@ def main(cfg):
     takeoff_policy.load_state_dict(takeoff_state_dict)
     
     # load checkpoint for deployment
+    # ckpt_name = "model/test_model/origin_massrandom.pt"
     ckpt_name = "model/track_1130.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
@@ -115,11 +120,11 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=30)
+            swarm.act(action, rpy_scale=60)
 
             cur_time = time.time()
             dt = cur_time - last_time
-            print('time', dt)
+            # print('time', dt)
             last_time = cur_time
 
         # env.save_target_traj("8_1_demo.pt")
@@ -146,7 +151,7 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/square_2.pt")
+    torch.save(data_frame, "rl_data/8_origin_old.pt")
 
 if __name__ == "__main__":
     main()

@@ -18,6 +18,7 @@ def executeTrajectory(timeHelper, cf, trajpath, rate=100, offset=np.zeros(3)):
             break
 
         e = traj.eval(t)
+        print(e.pos + np.array(cf.initialPosition))
         cf.cmdFullState(
             e.pos + np.array(cf.initialPosition) + offset,
             e.vel,

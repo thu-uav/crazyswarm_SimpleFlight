@@ -69,9 +69,10 @@ class FakeHoverDodge(FakeEnv):
             relative_b_pos, 
             balls_vel.expand_as(relative_b_pos)
         ], dim=-1) #[env, agent, ball_num, *]
-        mask = relative_b_dis > 1.5
-        obs_ball[mask] = 0.
+        mask = relative_b_dis.detach().cpu().item() > 2.
         fake_obs_ball = torch.zeros_like(obs_ball)
+        if mask:
+            obs_ball = fake_obs_ball
         obs.append(obs_ball)
 
         obs = torch.concat(obs, dim=1).unsqueeze(0)
