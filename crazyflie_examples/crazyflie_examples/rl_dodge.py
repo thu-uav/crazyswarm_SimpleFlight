@@ -61,7 +61,7 @@ def main(cfg):
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
     
     # ckpt_name = "model/dodge_1218_finetune.pt"
-    ckpt_name = "model/dodge_60.pt"
+    ckpt_name = "model/test_model/dodge_1218_finetune.pt"
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
 
@@ -86,7 +86,7 @@ def main(cfg):
             
             data = policy(data, deterministic=True)
             action = torch.tanh(data[("agents", "action")])
-            swarm.act(action, rpy_scale=60)
+            swarm.act(action, rpy_scale=30)
 
             data = base_env.step(data)
             data = step_mdp(data)
@@ -104,7 +104,7 @@ def main(cfg):
             last_time = cur_time
 
     swarm.end_program()
-    torch.save(data_frame, "rl_data/hoverdodge.pt")
+    torch.save(data_frame, "rl_data/hoverdodge_1218.pt")
 
 if __name__ == "__main__":
     main()

@@ -14,11 +14,19 @@ def main():
 
     traj1 = Trajectory()
     traj1.loadcsv(Path(__file__).parent / 'data/figure8.csv')
+    # traj1.loadcsv(Path(__file__).parent / 'data/rotate_acc.csv')
+
+    # TODO set
 
     TRIALS = 1
     TIMESCALE = 1.0
     for i in range(TRIALS):
         for cf in allcfs.crazyflies:
+            # set params
+            # cf.setParam("pid_rate.yaw_kp", 240)
+            # cf.setParam("pid_rate.yaw_kp", 480)
+            # timeHelper.sleep(1.0)
+
             cf.uploadTrajectory(0, 0, traj1)
             cf.takeoff(targetHeight=1.0, duration=2.0)
             timeHelper.sleep(2.5)
@@ -27,8 +35,6 @@ def main():
             timeHelper.sleep(2.5)
             cf.startTrajectory(0, timescale=TIMESCALE)
             timeHelper.sleep(traj1.duration * TIMESCALE + 2.0)
-        # allcfs.startTrajectory(0, timescale=TIMESCALE, reverse=True)
-        # timeHelper.sleep(traj1.duration * TIMESCALE + 2.0)
 
             cf.land(targetHeight=0.06, duration=2.0)
             timeHelper.sleep(3.0)

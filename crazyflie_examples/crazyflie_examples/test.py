@@ -24,12 +24,12 @@ import numpy as np
 #     print(data[i]['agents', 'real_position'])
 #     print(data[i]['agents', 'observation'][..., :3])
 
-data = torch.load('rl_data/fb_3.pt')
+data = torch.load('rl_data/hoverdodge.pt')
 # print(len(data))
 # for i in range(5):
 #     # print(data[i]['agents', 'observation'][..., :3])
 #     print(torch.tanh(data[i]['agents', 'action']))
-for i in range(499, 505):
+for i in range(100, 108):
     print(data[i]['agents', 'observation'][0])
     action = torch.tanh(data[i]['agents', 'action'])
     print((action+1)/2)

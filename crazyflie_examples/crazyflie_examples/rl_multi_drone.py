@@ -93,7 +93,7 @@ def main(cfg):
 
             cur_time = time.time()
             dt = cur_time - last_time
-            print('time', dt)
+            # print('time', dt)
             last_time = cur_time
 
             if timestep > 300:

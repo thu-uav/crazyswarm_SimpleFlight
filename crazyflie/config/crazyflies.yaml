@@ -2,10 +2,9 @@
 robots:
   cf7:
     enabled: true
-    uri: radio://2/87/2M/E7E7E7E707
+    uri: radio://1/87/2M/E7E7E7E707
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
-
 
   cf1:
     enabled: true
@@ -15,31 +14,37 @@ robots:
 
   # cf5:
   #   enabled: true
-  #   uri: radio://1/80/2M/E7E7E7E705
+  #   uri: radio://0/80/2M/E7E7E7E705
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
   # cf2:
   #   enabled: true
-  #   uri: radio://2/85/2M/E7E7E7E702
+  #   uri: radio://1/85/2M/E7E7E7E702
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
+  # cf9:
+  #   enabled: true
+  #   uri: radio://1/95/2M/E7E7E7E709
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf4:
   #   enabled: true
   #   uri: radio://0/90/2M/E7E7E7E704
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
+
   cf3:
     enabled: true
-    uri: radio://1/92/2M/E7E7E7E703
+    uri: radio://2/92/2M/E7E7E7E703
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
 
   # cf8:
   #   enabled: true
-  #   uri: radio://1/80/2M/E7E7E7E708
+  #   uri: radio://0/80/2M/E7E7E7E708
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
   
@@ -49,11 +54,7 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf9:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E709
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+
 
   # cf9:
   #   enabled: true
@@ -81,14 +82,26 @@ all:
   # robots/drone_name to set per drone)
   firmware_logging:
     enabled: false
-    default_topics:
+    # default_topics:
      # remove to disable default topic
+      # pose:
+      #   frequency: 100 # Hz
+    custom_topics:
+      # NN_thrust:
+      #   frequency: 100 # Hz
+      #   vars: ["ctrlNN.out0", "ctrlNN.out1", "ctrlNN.out2", "ctrlNN.out3"]
+      # NN_input_pos:
+      #   frequency: 100 # Hz
+      #   vars: ["ctrlNN.in0", "ctrlNN.in1", "ctrlNN.in2"]
+      # NN_input_vel:
+      #   frequency: 100 # Hz
+      #   vars: ["ctrlNN.in3", "ctrlNN.in4", "ctrlNN.in5"]
+      # setpoints:
+      #   frequency: 100 # Hz
+      #   vars: ["ctrltarget.x", "ctrltarget.y", "ctrltarget.z"]
       pose:
         frequency: 100 # Hz
-    custom_topics:
-      pos:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z"]
+        vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z",]
       quat:
         frequency: 100 # Hz
         vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
@@ -98,9 +111,9 @@ all:
       omega:
         frequency: 100 # Hz
         vars: ["gyro.x", "gyro.y", "gyro.z"]
-      # command_rpy:
-      #   frequency: 100
-      #   vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
+    #   # command_rpy:
+    #   #   frequency: 100
+    #   #   vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
       real_rate:
         frequency: 100
         vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
@@ -116,6 +129,9 @@ all:
       motors:
         frequency: 100
         vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
+      rpy:
+        frequency: 100 # Hz
+        vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
       # motors_req:
       #   frequency: 100
       #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']

@@ -10,9 +10,9 @@ SIDE = 0.5
 H_OFFSET = 0.
 
 HZ = 20
-time_scaling = 1/4
+time_scaling = 1/100
 fx = lambda t: np.sin(t*time_scaling)
-fy = lambda t: np.cos(t*time_scaling)
+fy = lambda t: np.cos(t*time_scaling)-1
 
 timesteps = np.arange(0, 2*np.pi/time_scaling, 1/HZ)
 def main():
