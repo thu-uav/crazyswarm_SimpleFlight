@@ -14,7 +14,8 @@ from matplotlib.cm import get_cmap
 import csv
 import time
 
-CMAPS = ['Purples', 'Blues', 'Greens', 'Oranges', 'Reds', 'Greys']
+CMAPS = ['Purples', 'Blues', 'Greens', 'Oranges', 'Reds', 'Greys',
+         'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu', 'GnBu',]
 
 class SubscriberNode(Node):
     """
@@ -94,12 +95,19 @@ class SubscriberNode(Node):
         self.csv_writer.writerow(data_row)
 
 
-def csv2gif(filename="data.csv"):
+def csv2gif(filename="data.csv", output="data.gif", 
+            endense_factor: int=1, 
+            endense_filename="data_endensed.csv", 
+            endense_save_data: bool=False):
     """
     Reads the csv file and plots the position of the agents in 3D
     and saves the data to a gif file
     """
     data = np.genfromtxt(filename, delimiter=',', names=True)
+    if endense_factor > 1:
+        data = _endense(data, factor=endense_factor, 
+                        save_data=endense_save_data, save_filename=endense_filename)
+
     times = data["time"]
     agent_names = [name for name in data.dtype.names if name != "time"]
     num_agents = len(agent_names) // 8
@@ -107,34 +115,60 @@ def csv2gif(filename="data.csv"):
     for i in range(num_agents):
         agents_pos.append([data[f"agent_{i}_x"], data[f"agent_{i}_y"], data[f"agent_{i}_z"]])
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=[9.6, 7.2], constrained_layout=True)
     ax = fig.gca(projection='3d')
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
 
     def update_graph(i):
         ax.clear()
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        ax.set_facecolor('#d9d9d9')
+        ax.set_xlim(left=min([min(pos[0]) for pos in agents_pos]), right=max([max(pos[0]) for pos in agents_pos]))
+        ax.set_ylim(bottom=min([min(pos[1]) for pos in agents_pos]), top=max([max(pos[1]) for pos in agents_pos]))
+        ax.set_zlim(bottom=min([min(pos[2]) for pos in agents_pos]), top=max([max(pos[2]) for pos in agents_pos]))
+        ax.set_xlabel('X/m')
+        ax.set_ylabel('Y/m')
+        ax.set_zlabel('Z/m')
+        ax.tick_params(axis='x')
+        ax.tick_params(axis='y')
+        ax.tick_params(axis='z')
         for j in range(num_agents):
-            ax.plot(xs=agents_pos[j][0][:i], ys=agents_pos[j][1][:i], zs=agents_pos[j][2][:i], 
-                    # c=get_cmap(CMAPS[j])(times[:i] / times[-1])
-                    )
+            sorted_indices = np.argsort(agents_pos[j][2][:i])
+            ax.scatter(xs=agents_pos[j][0][:i][sorted_indices], 
+                       ys=agents_pos[j][1][:i][sorted_indices], 
+                       zs=agents_pos[j][2][:i][sorted_indices], 
+                       s=40, c=get_cmap('YlOrRd')(0.2+0.6*(times[:i][sorted_indices] / times[i])**2), 
+                       linewidth=0., alpha=0.8
+                      )
         return ax
 
     ani = animation.FuncAnimation(fig, update_graph, len(times), interval=1, blit=False)
-    ani.save('data.gif', writer=animation.PillowWriter())
+    ani.save(output, writer=animation.PillowWriter(fps=len(times) / times[-1]))
+
+
+def _endense(data, factor: int=1, save_data: bool=False, save_filename: str="data_endensed.csv"):
+    """
+    Endenses the data by inserting points between the data points
+    """
+    data_endensed = np.zeros((len(data)-1)*factor, dtype=data.dtype)
+    for key in data.dtype.names:
+        l = len(data[key])
+        values = np.stack([data[key][1:], data[key][:l-1]], axis=1)
+        weights = np.arange(factor) / factor
+        weights = np.stack([weights, 1-weights], axis=0)
+        data_endensed[key] = np.concatenate(np.matmul(values, weights), axis=0)
+    if save_data:
+        np.savetxt(save_filename, data_endensed, delimiter=',', 
+                   header=','.join(data.dtype.names), comments='')
+    return data_endensed
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = SubscriberNode("plot_optitrack")
+    node = SubscriberNode("plot_optitrack", filename="data_figure8.csv")
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
-    # main()
-    csv2gif()
+    # main() # Uncomment this line to plot online and collect data
+    csv2gif(filename="data_figure8.csv", output="data_figure8_endensed_2.gif",
+            endense_factor=5) # Uncomment this line to plot offline
