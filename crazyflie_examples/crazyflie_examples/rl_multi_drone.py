@@ -100,7 +100,7 @@ def main(cfg):
                 base_env.target_pos[..., 2] = 0.2
 
     swarm.end_program()
-    torch.save(data_frame, "rl_data/multi_hover.pt")
+    torch.save(data_frame, "rl_data/multi_hover_0123.pt")
 
 if __name__ == "__main__":
     main()

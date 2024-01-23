@@ -57,10 +57,10 @@ class FakeHoverDodge(FakeEnv):
         self.rpos = self.target_pos - self.drone_state[..., :3]
         obs = [self.rpos, self.drone_state[..., 3:], torch.zeros((self.num_cf, 4))]
        
-        balls_pos = self.obstacle_state[..., :3]
+        balls_pos = self.ball_state[..., :3]
 
         relative_b_pos = self.drone_state[..., :3] - balls_pos
-        balls_vel = self.obstacle_state[..., 3:]
+        balls_vel = self.ball_state[..., 3:]
         self.relative_b_dis = torch.norm(relative_b_pos, p=2, dim=-1)
         relative_b_dis = self.relative_b_dis
 

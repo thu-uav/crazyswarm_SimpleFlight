@@ -1,16 +1,16 @@
 # named list of all robots
 robots:
-  cf7:
-    enabled: true
-    uri: radio://1/87/2M/E7E7E7E707
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf7:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E707
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
-  cf1:
-    enabled: true
-    uri: radio://0/90/2M/E7E7E7E701
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf1:
+  #   enabled: true
+  #   uri: radio://0/80/2M/E7E7E7E701
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf5:
   #   enabled: true
@@ -24,11 +24,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf9:
-  #   enabled: true
-  #   uri: radio://1/95/2M/E7E7E7E709
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf9:
+    enabled: true
+    uri: radio://0/95/2M/E7E7E7E709
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
   # cf4:
   #   enabled: true
@@ -36,15 +36,15 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf3:
-    enabled: true
-    uri: radio://2/92/2M/E7E7E7E703
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf3:
+  #   enabled: true
+  #   uri: radio://2/92/2M/E7E7E7E703
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf8:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E708
+  #   uri: radio://1/80/2M/E7E7E7E708
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
   
@@ -129,12 +129,12 @@ all:
       motors:
         frequency: 100
         vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
-      rpy:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
-      # motors_req:
-      #   frequency: 100
-      #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
+      # rpy:
+      #   frequency: 100 # Hz
+      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      motors_req:
+        frequency: 100
+        vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
       # battery:
       #   frequency: 100
       #   vars: ['pm.vbat', 'pm.extVbat', 'pm.extCurr', 'pm.batteryLevel']

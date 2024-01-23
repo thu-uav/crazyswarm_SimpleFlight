@@ -40,7 +40,8 @@ class FakeEnv(EnvBase):
         self.cfg = cfg
         # extract commonly used parameters
         self.num_envs = self.cfg.env.num_envs
-        self.num_obstacle = 1
+        self.num_ball = self.cfg.task.ball_num
+        self.num_static_obstacle = cfg.task.static_obs_num
         self.connection = connection
         self.progress_buf = 0
 
@@ -54,7 +55,8 @@ class FakeEnv(EnvBase):
         else:
             self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
             self.drone_state[..., 3] = 1. # default rotation
-            self.obstacle_state = torch.zeros((self.num_obstacle, 6))
+            self.ball_state = torch.zeros((self.num_ball, 6))
+            self.obstacle_state = torch.zeros((self.num_static_obstacle, 3))
 
     @property
     def agent_spec(self):
@@ -105,7 +107,7 @@ class FakeEnv(EnvBase):
     
     def update_drone_state(self):
         if self.connection:
-            self.drone_state, self.obstacle_state = self.swarm.get_drone_state()
+            self.drone_state, self.ball_state, self.obstacle_state = self.swarm.get_drone_state()
         rot = self.drone_state[..., 3:7]
         self.drone_state[..., 10:13] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
         self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()

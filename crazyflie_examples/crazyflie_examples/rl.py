@@ -52,10 +52,9 @@ def main(cfg):
         "ppo_rnn": PPORNNPolicy,
         "mappo": MAPPOPolicy, 
     }
-    swarm = Swarm(cfg)
+    swarm = Swarm(cfg, test=False)
     base_env = FakeHover(cfg, connection=True, swarm=swarm)
 
-    base_env.set_seed(cfg.seed)
 
     agent_spec: AgentSpec = base_env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)

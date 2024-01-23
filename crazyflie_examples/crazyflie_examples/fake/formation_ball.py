@@ -157,10 +157,10 @@ class FormationBall(FakeEnv):
             # vmap(others)(self.drone_state[..., 3:10].unsqueeze(0))
         ], dim=-1)
 
-        balls_pos = self.obstacle_state[..., :3].unsqueeze(0) # [env_num, ball_num, 3]
+        balls_pos = self.ball_state[..., :3].unsqueeze(0) # [env_num, ball_num, 3]
 
         relative_b_pos = pos[..., :3].unsqueeze(2) - balls_pos.unsqueeze(1) # [env_num, drone_num, 1, 3] - [env_num, 1, ball_num, 3]
-        balls_vel = self.obstacle_state[..., 3:].unsqueeze(0).unsqueeze(0) # [env_num, 1, ball_num, 3]
+        balls_vel = self.ball_state[..., 3:].unsqueeze(0).unsqueeze(0) # [env_num, 1, ball_num, 3]
         self.relative_b_dis = torch.norm(relative_b_pos, p=2, dim=-1) # [env_num, drone_num, ball_num, 3] -> [env_num, drone_num, ball_num]
         relative_b_dis = self.relative_b_dis # [env_num, drone_num, ball_num]
 

@@ -68,7 +68,7 @@ def main(cfg):
     
     # load checkpoint for deployment
     # ckpt_name = "model/test_model/origin_massrandom.pt"
-    ckpt_name = "model/track_1130.pt"
+    ckpt_name = "model/Pcontroller_clip60_optcontroller.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
@@ -151,7 +151,7 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/8_origin_old.pt")
+    torch.save(data_frame, "rl_data/cf7_optcontroller_star.pt")
 
 if __name__ == "__main__":
     main()

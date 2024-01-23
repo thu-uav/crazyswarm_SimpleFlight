@@ -12,3 +12,4 @@ test_model/
 test.py
 *.png
 *.zip
+__pycache__
