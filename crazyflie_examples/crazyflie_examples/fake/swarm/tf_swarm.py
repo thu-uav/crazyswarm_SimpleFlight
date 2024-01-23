@@ -148,6 +148,18 @@ class Swarm():
             cf.cmdVel(action[0], -action[1], action[2], thrust)
         self.timeHelper.sleepForRate(rate)
 
+    # give cmd and act
+    def cmd_act(self, action, rate=50):
+        if self.test:
+            return
+        for id in range(self.num_cf):
+            # action = all_action[0][id].cpu().numpy().astype(float)
+            cf = self.cfs[id]
+            # thrust = 43300.0
+            thrust = 45000.0
+            cf.cmdVel(action[0], -action[1], action[2], thrust)
+        self.timeHelper.sleepForRate(rate)
+
     def init(self):
         if self.test:
             return

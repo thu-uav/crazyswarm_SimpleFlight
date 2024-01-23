@@ -151,7 +151,11 @@ def main(cfg):
 
     swarm.end_program()
     
+<<<<<<< HEAD
     torch.save(data_frame, "rl_data/cf7_optcontroller_star.pt")
+=======
+    torch.save(data_frame, "rl_data/8_origin_old.pt")
+>>>>>>> ca6d7060950e66645f4977469beb6a1a1e8dce7c
 
 if __name__ == "__main__":
     main()

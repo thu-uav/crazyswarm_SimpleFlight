@@ -8,7 +8,11 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
+<<<<<<< HEAD
 data = torch.load('rl_data/cf7_optcontroller_star.pt')
+=======
+data = torch.load('rl_data/star_origin_old.pt')
+>>>>>>> ca6d7060950e66645f4977469beb6a1a1e8dce7c
 
 x = []
 y = []
