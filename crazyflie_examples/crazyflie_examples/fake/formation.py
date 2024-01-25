@@ -137,7 +137,7 @@ class Formation(FakeEnv):
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
 
-        obs_self = [self.drone_state, torch.zeros((self.num_cf, 4))]
+        obs_self = [self.drone_state[..., :10], self.drone_state[..., 13:], torch.zeros((self.num_cf, 4))]
         if self.cfg.algo.share_actor:
             obs_self.append(self.drone_id.reshape(-1, 1).expand(-1, self.id_dim))
         obs_self = torch.concat(obs_self, dim=1).unsqueeze(0)

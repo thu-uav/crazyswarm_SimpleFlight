@@ -6,7 +6,7 @@ from multiprocessing import Process
 from rclpy.executors import MultiThreadedExecutor
 from .subscriber import TFSubscriber
 from torchrl.data import CompositeSpec, TensorSpec, DiscreteTensorSpec, BoundedTensorSpec, UnboundedContinuousTensorSpec
-
+from omni_drones.utils.torch import quaternion_to_euler
 
 class FakeRobot():
     def __init__(self, cfg, name, device, id):
@@ -54,7 +54,7 @@ class Swarm():
         self.timeHelper = self.swarm.timeHelper
         self.cfs = self.swarm.allcfs.crazyflies
         self.num_cf = len(self.cfs)
-        self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
+        self.drone_state = torch.zeros((self.num_cf, 19)) # position, quaternion, velocity, omega, heading, up
         self.num_ball = cfg.task.ball_num
         self.ball_state = torch.zeros((self.num_ball, 6)) # position, velocity
         self.num_static_obstacle = cfg.task.static_obs_num
@@ -82,6 +82,8 @@ class Swarm():
 
     def update_drone_state(self, log):
         last_pos = self.drone_state[...,:3].clone()
+        last_quat = self.drone_state[...,3:7].clone()
+        last_rpy = quaternion_to_euler(last_quat)
         if self.num_ball > 0:
             last_ball = self.ball_state[..., :3].clone()
         for tf in log.transforms:
@@ -107,6 +109,8 @@ class Swarm():
             self.drone_state[drone_id][5] = tf.transform.rotation.y
             self.drone_state[drone_id][6] = tf.transform.rotation.z
         self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
+        curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
+        self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
         if self.num_ball > 0:
             self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
         self.last_time = time
@@ -125,7 +129,7 @@ class Swarm():
             thrust = (action[3] + 1) / 2 * self.mass
             thrust = float(max(0, min(0.9, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
-        self.timeHelper.sleepForRate(rate)
+        # self.timeHelper.sleepForRate(rate)
     
     def act_control(self, all_action, rpy_scale=30, rate=50):
         if self.test:
@@ -136,17 +140,17 @@ class Swarm():
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, action[3])
         self.timeHelper.sleepForRate(rate)
 
-    # give cmd and act
-    def cmd_act(self, action, rate=50):
-        if self.test:
-            return
-        for id in range(self.num_cf):
-            # action = all_action[0][id].cpu().numpy().astype(float)
-            cf = self.cfs[id]
-            # thrust = 43300.0
-            thrust = 45000.0
-            cf.cmdVel(action[0], -action[1], action[2], thrust)
-        self.timeHelper.sleepForRate(rate)
+    # # give cmd and act
+    # def cmd_act(self, action, rate=50):
+    #     if self.test:
+    #         return
+    #     for id in range(self.num_cf):
+    #         # action = all_action[0][id].cpu().numpy().astype(float)
+    #         cf = self.cfs[id]
+    #         # thrust = 43300.0
+    #         thrust = 45000.0
+    #         cf.cmdVel(action[0], -action[1], action[2], thrust)
+    #     self.timeHelper.sleepForRate(rate)
 
     # give cmd and act
     def cmd_act(self, action, rate=50):

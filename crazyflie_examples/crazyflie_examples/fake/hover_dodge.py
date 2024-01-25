@@ -55,7 +55,7 @@ class FakeHoverDodge(FakeEnv):
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
         self.rpos = self.target_pos - self.drone_state[..., :3]
-        obs = [self.rpos, self.drone_state[..., 3:], torch.zeros((self.num_cf, 4))]
+        obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 13:], torch.zeros((self.num_cf, 4))]
        
         balls_pos = self.ball_state[..., :3]
 

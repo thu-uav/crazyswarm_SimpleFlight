@@ -2,7 +2,7 @@
 robots:
   # cf7:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E707
+  #   uri: radio://2/90/2M/E7E7E7E707
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
@@ -38,7 +38,7 @@ robots:
 
   # cf3:
   #   enabled: true
-  #   uri: radio://2/92/2M/E7E7E7E703
+  #   uri: radio://1/85/2M/E7E7E7E703
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 

@@ -81,14 +81,14 @@ class FormationBallForward(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
-        self.num_cf = 2
+        self.num_cf = 3
         self.num_obstacle = 1
         super().__init__(cfg, connection, swarm)
         self.time_encoding = True
         self.drone_id = torch.Tensor(np.arange(self.num_cf))
         self.target_vel = torch.Tensor([1,1,0]).float()
         self.mask_observation = torch.tensor([self.cfg.task.obs_range, -1, -1, -1, -1, -1, -1, -1, -1, -1]).float()
-        
+        self.target_height = 0.5
         
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -147,15 +147,14 @@ class FormationBallForward(FakeEnv):
         self.update_drone_state()
         self.formation_center = self.drone_state[..., :3].mean(-2, keepdim=True)
 
-        rel_vel = self.drone_state[..., 7:10] - self.target_vel #[env_num, drone_num, 3]
-
-        obs_self = [self.drone_state, rel_vel]
+        # rel_vel = self.drone_state[..., 7:10] - self.target_vel #[env_num, drone_num, 3]
+        obs_self = [self.drone_state] #, rel_vel]
         if self.cfg.algo.share_actor:
             obs_self.append(self.drone_id.reshape(-1, 1).expand(-1, self.id_dim))
         obs_self = torch.concat(obs_self, dim=1).unsqueeze(0)
         obs_self[..., 0] -= self.formation_center[..., 0]
         obs_self[..., 1] -= self.formation_center[..., 1]
-        obs_self[..., 2] -= 1.5 # target height
+        obs_self[..., 2] -= self.target_height
 
         pos = self.drone_state[..., :3].unsqueeze(0) # TODO: check
         vel = self.drone_state[..., 7:10].unsqueeze(0) # TODO: check

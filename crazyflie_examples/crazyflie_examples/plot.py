@@ -8,11 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-<<<<<<< HEAD
-data = torch.load('rl_data/cf7_optcontroller_star.pt')
-=======
-data = torch.load('rl_data/star_origin_old.pt')
->>>>>>> ca6d7060950e66645f4977469beb6a1a1e8dce7c
+data = torch.load('rl_data/cf9_optdynamics_star_100Hz.pt')
 
 x = []
 y = []
@@ -44,4 +40,4 @@ colors = color_map(error)
 ax.scatter(x, y, z, s=5, c=colors)
 ax.set_zlim3d(0.,1.1)
 ax.plot(target_x, target_y, target_z)
-plt.savefig('star_cf7optcontroller_'+str(mean_e) + '.png')
+plt.savefig('star_oririn50Hz_'+str(mean_e) + '.png')

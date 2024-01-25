@@ -55,7 +55,7 @@ class FakeEnv(EnvBase):
             self.swarm = swarm
             self.num_cf = self.swarm.num_cf
         else:
-            self.drone_state = torch.zeros((self.num_cf, 16)) # position, velocity, quaternion, heading, up, relative heading
+            self.drone_state = torch.zeros((self.num_cf, 19)) # position, velocity, quaternion, heading, up, relative heading
             self.drone_state[..., 3] = 1. # default rotation
 
     @property
@@ -109,8 +109,8 @@ class FakeEnv(EnvBase):
         if self.connection:
             self.drone_state = self.swarm.get_drone_state()
         rot = self.drone_state[..., 3:7]
-        self.drone_state[..., 10:13] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
-        self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()
+        self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
+        self.drone_state[..., 16:19] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()
 
 
 class _AgentSpecView(Dict[str, AgentSpec]):

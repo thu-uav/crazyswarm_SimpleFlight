@@ -68,7 +68,7 @@ def main(cfg):
     
     # load checkpoint for deployment
     # ckpt_name = "model/test_model/origin_massrandom.pt"
-    ckpt_name = "model/Pcontroller_clip60_optcontroller.pt"
+    ckpt_name = "model/figure8_mass003_worandom.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
@@ -129,7 +129,7 @@ def main(cfg):
 
         # env.save_target_traj("8_1_demo.pt")
         # land
-        for timestep in range(500):
+        for timestep in range(800):
             takeoff_data = takeoff_env.step(takeoff_data)
             takeoff_data = step_mdp(takeoff_data)
 
@@ -148,14 +148,13 @@ def main(cfg):
 
             if timestep == 400:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
+            
+            if timestep == 650:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .1]])
 
     swarm.end_program()
     
-<<<<<<< HEAD
-    torch.save(data_frame, "rl_data/cf7_optcontroller_star.pt")
-=======
-    torch.save(data_frame, "rl_data/8_origin_old.pt")
->>>>>>> ca6d7060950e66645f4977469beb6a1a1e8dce7c
+    torch.save(data_frame, "rl_data/cf9_optall_star_100Hz.pt")
 
 if __name__ == "__main__":
     main()
