@@ -50,8 +50,20 @@ def main(cfg):
         "mappo": MAPPOPolicy, 
     }
     swarm = Swarm(cfg, test=False)
+
+    # real rl policy
+    ckpt_name = "model/track_1130.pt"
+    base_env = FakeTrack(cfg, connection=True, swarm=swarm)
+    agent_spec = base_env.agent_spec["drone"]
+    policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
+    state_dict = torch.load(ckpt_name)
+    policy.load_state_dict(state_dict)
+    with torch.no_grad():
+        # the first inference takes significantly longer time. This is a warm up
+        data = base_env.reset().to(device=base_env.device)
+        data = policy(data, deterministic=True)
+
     swarm.init()
-    base_env = FakeHover(cfg, connection=True, swarm=swarm)
     controller = PID(device=base_env.device)
 
     base_env.set_seed(cfg.seed)
@@ -59,7 +71,7 @@ def main(cfg):
 
     init_pos = base_env.drone_state[..., :3]
     target_pos = init_pos.clone()
-    target_pos[..., 2] = 1.
+    target_pos[..., 2] = 1.0
     controller.set_pos(
         init_pos=init_pos,
         target_pos=target_pos
@@ -74,7 +86,7 @@ def main(cfg):
     
     init_pos = base_env.drone_state[..., :3]
     target_pos = init_pos.clone()
-    target_pos[..., 2] = 1.
+    target_pos[..., 2] = 1.0
     controller.set_pos(
         init_pos=init_pos,
         target_pos=target_pos
@@ -92,31 +104,25 @@ def main(cfg):
         data = base_env.step(data)
         data = step_mdp(data)
 
-    init_pos = base_env.drone_state[..., :3]
-    target_pos = init_pos.clone()
-    target_pos[..., 0] = 0.5
-    target_pos[..., 1] = 0.5
-    target_pos[..., 2] = 1
-    controller.set_pos(
-        init_pos=init_pos,
-        target_pos=target_pos
-        )
-    print("init pos", init_pos)
-    print("target pos", target_pos)
 
-    for i in range(200):
-        action = controller(base_env.drone_state, timestep=i)
-        data['agents', 'action'] = action.to(base_env.device)
-        swarm.act_control(action)
-        # print(action)
+    data_frame = []
+    with torch.no_grad():
+        # real policy rollout
+        for _ in range(1000):
+            data = base_env.step(data) 
+            data = step_mdp(data)
+            
+            data = policy(data, deterministic=True)
+            data_frame.append(data.clone())
+            action = torch.tanh(data[("agents", "action")])
 
-        data = base_env.step(data)
-        data = step_mdp(data)
-
+            swarm.act(action, rpy_scale=60, rate=50)
+            
+    
     # use PID controller to land
     init_pos = base_env.drone_state[..., :3]
     target_pos = init_pos.clone()
-    target_pos[..., 2] = 0.04
+    target_pos[..., 2] = 0.1
     controller.set_pos(
         init_pos=init_pos,
         target_pos=target_pos
@@ -133,47 +139,9 @@ def main(cfg):
         data = base_env.step(data)
         data = step_mdp(data)
 
-
-    # agent_spec = env.agent_spec["drone"]
-    # policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
-    # state_dict = torch.load(ckpt_name)
-    # policy.load_state_dict(state_dict)
-
-    # with torch.no_grad():
-    #     # the first inference takes significantly longer time. This is a warm up
-    #     data = base_env.reset().to(device=base_env.device)
-    #     data = policy(data, deterministic=True)
-
-    #     print('start to deploy rl policy')
-
-    #     # update observation
-    #     data = base_env.step(data) 
-
-    #     last_time = time.time()
-    #     data_frame = []
-
-    #     swarm.init()
-
-    #     # real policy rollout
-    #     for timestep in range(10):
-            
-    #         data = policy(data, deterministic=True)
-    #         print(data)
-    #         action = torch.tanh(data[("agents", "action")])
-    #         swarm.act(action)
-    #         print(action)
-
-    #         data = base_env.step(data)
-    #         data = step_mdp(data)
-    #         data_frame.append(data.clone())
-            
-    #         cur_time = time.time()
-    #         dt = cur_time - last_time
-    #         print('time', dt)
-    #         last_time = cur_time
-
     swarm.end_program()
-    # torch.save(data_frame, "rl_data/hover.pt")
+
+    torch.save(data_frame, "rl_data/hover.pt")
 
 if __name__ == "__main__":
     main()

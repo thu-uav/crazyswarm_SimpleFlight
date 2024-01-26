@@ -129,7 +129,7 @@ class Swarm():
             thrust = (action[3] + 1) / 2 * self.mass
             thrust = float(max(0, min(0.9, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
-        # self.timeHelper.sleepForRate(rate)
+        self.timeHelper.sleepForRate(rate)
     
     def act_control(self, all_action, rpy_scale=30, rate=50):
         if self.test:

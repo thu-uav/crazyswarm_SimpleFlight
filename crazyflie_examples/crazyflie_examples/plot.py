@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-data = torch.load('rl_data/cf9_optdynamics_star_100Hz.pt')
+data = torch.load('rl_data/old_8_50Hz.pt')
 
 x = []
 y = []
@@ -40,4 +40,4 @@ colors = color_map(error)
 ax.scatter(x, y, z, s=5, c=colors)
 ax.set_zlim3d(0.,1.1)
 ax.plot(target_x, target_y, target_z)
-plt.savefig('star_oririn50Hz_'+str(mean_e) + '.png')
+plt.savefig('figure8_old50Hz_'+str(mean_e) + '.png')

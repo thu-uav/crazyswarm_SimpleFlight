@@ -68,7 +68,7 @@ def main(cfg):
     
     # load checkpoint for deployment
     # ckpt_name = "model/test_model/origin_massrandom.pt"
-    ckpt_name = "model/figure8_mass003_worandom.pt"
+    ckpt_name = "model/track_1130.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
@@ -112,7 +112,7 @@ def main(cfg):
                 takeoff_env.target_pos = torch.tensor([[0., 0., 1.]])
 
         # real policy rollout
-        for _ in range(1800):
+        for _ in range(1000):
             data = env.step(data) 
             data = step_mdp(data)
             
@@ -120,7 +120,7 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=60)
+            swarm.act(action, rpy_scale=60, rate=50)
 
             cur_time = time.time()
             dt = cur_time - last_time
@@ -154,7 +154,7 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/cf9_optall_star_100Hz.pt")
+    torch.save(data_frame, "rl_data/8_worandom_100Hz.pt")
 
 if __name__ == "__main__":
     main()

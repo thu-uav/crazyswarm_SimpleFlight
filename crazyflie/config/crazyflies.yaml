@@ -1,10 +1,10 @@
 # named list of all robots
 robots:
-  # cf7:
-  #   enabled: true
-  #   uri: radio://2/90/2M/E7E7E7E707
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf7:
+    enabled: true
+    uri: radio://0/80/2M/E7E7E7E707
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
   # cf1:
   #   enabled: true
@@ -24,11 +24,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf9:
-    enabled: true
-    uri: radio://0/95/2M/E7E7E7E709
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf9:
+  #   enabled: true
+  #   uri: radio://0/95/2M/E7E7E7E709
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf4:
   #   enabled: true
