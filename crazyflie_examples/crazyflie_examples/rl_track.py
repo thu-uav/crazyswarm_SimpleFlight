@@ -53,6 +53,7 @@ def main(cfg):
 
     # real rl policy
     ckpt_name = "model/track_1130.pt"
+    cmd_fre = 50
     base_env = FakeTrack(cfg, connection=True, swarm=swarm)
     agent_spec = base_env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
@@ -60,14 +61,14 @@ def main(cfg):
     policy.load_state_dict(state_dict)
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
-        data = base_env.reset().to(device=base_env.device)
+        data = base_env.reset().to(dest=base_env.device)
         data = policy(data, deterministic=True)
 
     swarm.init()
     controller = PID(device=base_env.device)
 
     base_env.set_seed(cfg.seed)
-    data = base_env.reset().to(device=base_env.device)
+    data = base_env.reset().to(dest=base_env.device)
 
     init_pos = base_env.drone_state[..., :3]
     target_pos = init_pos.clone()
@@ -106,6 +107,8 @@ def main(cfg):
 
 
     data_frame = []
+    # use reset
+    # base_env.reset().to(dest=base_env.device)
     with torch.no_grad():
         # real policy rollout
         for _ in range(1000):
@@ -116,7 +119,7 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=60, rate=50)
+            swarm.act(action, rpy_scale=60, rate=cmd_fre)
             
     
     # use PID controller to land

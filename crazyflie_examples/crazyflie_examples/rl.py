@@ -66,13 +66,14 @@ def main(cfg):
 
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
-        data = base_env.reset().to(device=base_env.device)
+        data = base_env.reset().to(dest=base_env.device)
         data = policy(data, deterministic=True)
 
         print('start to deploy rl policy')
 
         # update observation
         data = base_env.step(data) 
+        base_env.target_pos = torch.tensor([[0., 0., .5]])
 
         last_time = time.time()
         data_frame = []
@@ -80,7 +81,7 @@ def main(cfg):
         swarm.init()
 
         # real policy rollout
-        for timestep in range(1000):
+        for timestep in range(200):
             
             data = policy(data, deterministic=True)
             action = torch.tanh(data[("agents", "action")])
@@ -99,7 +100,7 @@ def main(cfg):
             # if i == 900:
             #     base_env.target_pos = torch.tensor([[0., 0., .5]])
 
-            if timestep == 600:
+            if timestep == 300:
                 base_env.target_pos = torch.tensor([[0., 0., .5]])
             
             if timestep == 800:
@@ -111,7 +112,7 @@ def main(cfg):
             last_time = cur_time
 
     swarm.end_program()
-    torch.save(data_frame, "rl_data/hover.pt")
+    torch.save(data_frame, "rl_data/hover_5floor.pt")
 
 if __name__ == "__main__":
     main()

@@ -8,7 +8,8 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-data = torch.load('rl_data/old_8_50Hz.pt')
+name = 'cf4_origin_2'
+data = torch.load('rl_data/'+name+'.pt')
 
 x = []
 y = []
@@ -40,4 +41,4 @@ colors = color_map(error)
 ax.scatter(x, y, z, s=5, c=colors)
 ax.set_zlim3d(0.,1.1)
 ax.plot(target_x, target_y, target_z)
-plt.savefig('figure8_old50Hz_'+str(mean_e) + '.png')
+plt.savefig('rl_data/'+name+'_'+str(mean_e) + '.png')

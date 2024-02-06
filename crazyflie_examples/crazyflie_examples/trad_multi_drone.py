@@ -24,7 +24,7 @@ def main():
     # takeoff
     for i in range(n):
         cf[i].takeoff(targetHeight=1.0, duration=TAKEOFF_DURATION)
-    timeHelper.sleep(TAKEOFF_DURATION + HOVER_DURATION)
+    timeHelper.sleep(TAKEOFF_DURATION)
 
     # # trajectory
     # for step in range(n):

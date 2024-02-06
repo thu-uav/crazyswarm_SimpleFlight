@@ -57,6 +57,7 @@ def main(cfg):
     #     cf.setParam("pid_rate.yaw_kp", 360)
 
     base_env = FakeHover(cfg, connection=True, swarm=swarm)
+    cmd_fre = 100
 
     # load takeoff checkpoint
     takeoff_ckpt = "model/1128_mlp.pt"
@@ -68,7 +69,7 @@ def main(cfg):
     
     # load checkpoint for deployment
     # ckpt_name = "model/test_model/origin_massrandom.pt"
-    ckpt_name = "model/track_1130.pt"
+    ckpt_name = "model/origin.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
@@ -79,10 +80,10 @@ def main(cfg):
 
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
-        data = env.reset().to(device=base_env.device)
+        data = env.reset().to(dest=base_env.device)
         data = policy(data, deterministic=True)
 
-        takeoff_data = takeoff_env.reset().to(device=takeoff_env.device)
+        takeoff_data = takeoff_env.reset().to(dest=takeoff_env.device)
         takeoff_data = takeoff_policy(takeoff_data, deterministic=True)
 
         swarm.init()
@@ -101,7 +102,7 @@ def main(cfg):
             takeoff_data = takeoff_policy(takeoff_data, deterministic=True)
             action = torch.tanh(takeoff_data[("agents", "action")])
 
-            swarm.act(action)
+            swarm.act(action, rate=cmd_fre)
 
             cur_time = time.time()
             dt = cur_time - last_time
@@ -120,7 +121,7 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=60, rate=50)
+            swarm.act(action, rpy_scale=60, rate=cmd_fre)
 
             cur_time = time.time()
             dt = cur_time - last_time
@@ -136,7 +137,7 @@ def main(cfg):
             takeoff_data = takeoff_policy(takeoff_data, deterministic=True)
             action = torch.tanh(takeoff_data[("agents", "action")])
 
-            swarm.act(action)
+            swarm.act(action, rate=cmd_fre)
 
             cur_time = time.time()
             dt = cur_time - last_time
@@ -154,7 +155,7 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/8_worandom_100Hz.pt")
+    torch.save(data_frame, "rl_data/cf4_origin_2.pt")
 
 if __name__ == "__main__":
     main()

@@ -66,7 +66,7 @@ def main(cfg):
 
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
-        data = base_env.reset().to(device=base_env.device)
+        data = base_env.reset().to(dest=base_env.device)
         data = policy(data, deterministic=True)
 
         # update observation
@@ -100,7 +100,7 @@ def main(cfg):
                 base_env.target_pos[..., 2] = 0.2
 
     swarm.end_program()
-    torch.save(data_frame, "rl_data/multi_hover_0123.pt")
+    torch.save(data_frame, "rl_data/multi_hover_0204_2.pt")
 
 if __name__ == "__main__":
     main()

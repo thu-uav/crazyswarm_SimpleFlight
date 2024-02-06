@@ -258,6 +258,36 @@ def quat_right(quat: torch.Tensor) -> torch.Tensor:
 
     return right_matrix
 
+def omega_rotate_from_euler(vec: torch.Tensor, ang: torch.Tensor) -> torch.Tensor:
+    """
+    Convert Angular rates from world frame to body frame using Euler angle(roll, pitch, yaw)
+    """
+    if ang.ndim == 1:
+        ang = ang.expand_as(vec)
+    
+    roll,pitch, yaw = ang.unbind(dim=-1)
+
+    cy = torch.cos(yaw)
+    sy = torch.sin(yaw)
+    cp = torch.cos(pitch)
+    sp = torch.sin(pitch)
+    cr = torch.cos(roll)
+    sr = torch.sin(roll)
+
+    rot = torch.zeros(ang.shape[:-1] + (3, 3), dtype=ang.dtype, device=ang.device)
+    rot[..., 0, 0] = torch.ones_like(cy)
+    rot[..., 0, 1] = torch.zeros_like(cy)
+    rot[..., 0, 2] = -sp
+    rot[..., 1, 0] = torch.zeros_like(cy)
+    rot[..., 1, 1] = cr
+    rot[..., 1, 2] = cp * sr
+    rot[..., 2, 0] = torch.zeros_like(cy)
+    rot[..., 2, 1] = -sr
+    rot[..., 2, 2] = cp * cr
+
+    assert rot.shape[:-2] == vec.shape[:-1]
+    return torch.bmm(rot, vec.unsqueeze(-1)).squeeze(-1)
+
 
 if __name__ == "__main__":
     from scipy.spatial.transform import Rotation as R

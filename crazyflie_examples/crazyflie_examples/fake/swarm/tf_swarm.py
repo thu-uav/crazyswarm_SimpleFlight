@@ -7,6 +7,7 @@ from rclpy.executors import MultiThreadedExecutor
 from .subscriber import TFSubscriber
 from torchrl.data import CompositeSpec, TensorSpec, DiscreteTensorSpec, BoundedTensorSpec, UnboundedContinuousTensorSpec
 from omni_drones.utils.torch import quaternion_to_euler
+import numpy as np
 
 class FakeRobot():
     def __init__(self, cfg, name, device, id):
@@ -50,6 +51,7 @@ class Swarm():
         if self.test:
             self.num_cf = 3
             return
+        self.log=None
         self.swarm = Crazyswarm()
         self.timeHelper = self.swarm.timeHelper
         self.cfs = self.swarm.allcfs.crazyflies
@@ -81,46 +83,49 @@ class Swarm():
             cf.setParam("flightmode.stabModeYaw", 0)
 
     def update_drone_state(self, log):
-        last_pos = self.drone_state[...,:3].clone()
-        last_quat = self.drone_state[...,3:7].clone()
-        last_rpy = quaternion_to_euler(last_quat)
-        if self.num_ball > 0:
-            last_ball = self.ball_state[..., :3].clone()
-        for tf in log.transforms:
-            time = tf.header.stamp.sec + tf.header.stamp.nanosec/1e9
-            if tf.child_frame_id == "ball":
-                ball_id = int(tf.child_frame_id[4:])
-                self.ball_state[ball_id][0] = tf.transform.translation.x
-                self.ball_state[ball_id][1] = tf.transform.translation.y
-                self.ball_state[ball_id][2] = tf.transform.translation.z
-            if tf.child_frame_id == "obs": 
-                obs_id = int(tf.child_frame_id[3:])
-                self.obstacle_state[obs_id][0] = tf.transform.translation.x
-                self.obstacle_state[obs_id][1] = tf.transform.translation.y
-                self.obstacle_state[obs_id][2] = 1.5 #tf.transform.translation.z
-            if tf.child_frame_id not in self.cf_map.keys():
-                continue
-            drone_id = self.cf_map[tf.child_frame_id]
-            self.drone_state[drone_id][0] = tf.transform.translation.x
-            self.drone_state[drone_id][1] = tf.transform.translation.y
-            self.drone_state[drone_id][2] = tf.transform.translation.z
-            self.drone_state[drone_id][3] = tf.transform.rotation.w
-            self.drone_state[drone_id][4] = tf.transform.rotation.x
-            self.drone_state[drone_id][5] = tf.transform.rotation.y
-            self.drone_state[drone_id][6] = tf.transform.rotation.z
-        self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
-        curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
-        self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
-        if self.num_ball > 0:
-            self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
-        self.last_time = time
+        self.log = log
 
     def get_drone_state(self):
         # update observation
         rclpy.spin_once(self.node)
+        if self.log is not None:
+            last_pos = self.drone_state[...,:3].clone()
+            last_quat = self.drone_state[...,3:7].clone()
+            last_rpy = quaternion_to_euler(last_quat)
+            if self.num_ball > 0:
+                last_ball = self.ball_state[..., :3].clone()
+            for tf in self.log.transforms:
+                time = tf.header.stamp.sec + tf.header.stamp.nanosec/1e9
+                if tf.child_frame_id == "ball":
+                    ball_id = int(tf.child_frame_id[4:])
+                    self.ball_state[ball_id][0] = tf.transform.translation.x
+                    self.ball_state[ball_id][1] = tf.transform.translation.y
+                    self.ball_state[ball_id][2] = tf.transform.translation.z
+                if tf.child_frame_id == "obs": 
+                    obs_id = int(tf.child_frame_id[3:])
+                    self.obstacle_state[obs_id][0] = tf.transform.translation.x
+                    self.obstacle_state[obs_id][1] = tf.transform.translation.y
+                    self.obstacle_state[obs_id][2] = 1.5 #tf.transform.translation.z
+                if tf.child_frame_id not in self.cf_map.keys():
+                    continue
+                drone_id = self.cf_map[tf.child_frame_id]
+                self.drone_state[drone_id][0] = tf.transform.translation.x
+                self.drone_state[drone_id][1] = tf.transform.translation.y
+                self.drone_state[drone_id][2] = tf.transform.translation.z
+                self.drone_state[drone_id][3] = tf.transform.rotation.w
+                self.drone_state[drone_id][4] = tf.transform.rotation.x
+                self.drone_state[drone_id][5] = tf.transform.rotation.y
+                self.drone_state[drone_id][6] = tf.transform.rotation.z
+            self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
+            curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
+            self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
+            if self.num_ball > 0:
+                self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
+            self.last_time = time
+
         return self.drone_state.clone(), self.ball_state.clone(), self.obstacle_state.clone()
     
-    def act(self, all_action, rpy_scale=60, rate=50):
+    def act(self, all_action, rpy_scale=30, rate=50):
         if self.test:
             return
         for id in range(self.num_cf):
@@ -131,13 +136,16 @@ class Swarm():
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
         self.timeHelper.sleepForRate(rate)
     
-    def act_control(self, all_action, rpy_scale=30, rate=50):
+    def act_control(self, all_action, rate=50):
         if self.test:
             return
         for id in range(self.num_cf):
             action = all_action[0][id].cpu().numpy().astype(float)
             cf = self.cfs[id]
-            cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, action[3])
+            roll_rate = float(np.clip(action[0] * 180. / torch.pi, -200., 200.))
+            pitch_rate = float(np.clip(action[1] * 180. / torch.pi, -200., 200.))
+            yaw_rate = float(np.clip(action[2] * 180. / torch.pi, -100., 100.))
+            cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, action[3])
         self.timeHelper.sleepForRate(rate)
 
     # # give cmd and act
