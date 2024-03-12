@@ -20,7 +20,7 @@ class FormationBallForward(FakeEnv):
         self.drone_id = torch.Tensor(np.arange(self.num_cf))
         self.target_vel = torch.Tensor([0,0,0]).float()
         self.mask_observation = torch.tensor([self.cfg.task.obs_range, -1, -1, -1, -1, -1, -1, -1, -1, -1]).float()
-        self.target_height = 1.
+        self.target_height = 0.8
         
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -48,7 +48,8 @@ class FormationBallForward(FakeEnv):
         self.observation_spec = CompositeSpec({
             "agents": {
                 "observation": agent_obs_spec, 
-            }
+                "state": UnboundedContinuousTensorSpec((19))
+            },
         }).expand(self.num_envs).to(self.device)
 
         self.action_spec = CompositeSpec({
@@ -155,6 +156,8 @@ class FormationBallForward(FakeEnv):
         #     obs_obstacle.reshape(1, self.num_cf, -1),
         #     ], dim=-1)
 
+        state = TensorDict({"drones": self.drone_state.unsqueeze(0)}, [self.num_envs, self.num_cf])
+
         if not self.cfg.task.use_separate_obs:
             obs = TensorDict({ 
                 "obs_self": obs_self.unsqueeze(2),  # [N, K, 1, obs_self_dim]
@@ -175,6 +178,7 @@ class FormationBallForward(FakeEnv):
         return TensorDict({
             "agents": {
                 "observation": obs,
+                "state": state,
             },
         }, self.num_envs)
 

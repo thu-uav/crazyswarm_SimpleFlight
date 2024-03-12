@@ -25,7 +25,7 @@ class PID():
         self.dt = self.ctrl_dt
         self.thrust_scale = 43300. / 9.81
 
-        self.moving_vel = 0.5
+        self.moving_vel = 0.3
         self.device = device
 
     def set_pos(self, init_pos, target_pos):

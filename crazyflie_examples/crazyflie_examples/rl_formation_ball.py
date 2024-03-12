@@ -46,7 +46,7 @@ def main(cfg):
     algos = {
         "mappo": MAPPOPolicy, 
     }
-
+    ckpt_name = "test_model/0312_1ball.pt"
     data_frame = []
 
     debug = False
@@ -59,6 +59,8 @@ def main(cfg):
     env = base_env
     agent_spec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
+    state_dict = torch.load(ckpt_name)
+    policy.load_state_dict(state_dict)
 
     controller = PID(device=base_env.device)
     formation_pos = torch.tensor(REGULAR_TRIANGLE)
@@ -108,6 +110,29 @@ def main(cfg):
             data = base_env.step(data)
             data = step_mdp(data)
 
+        last_time = time.time()
+
+
+
+        # real policy rollout
+        for _ in range(200):
+            data = env.step(data) 
+            data = step_mdp(data)
+            
+            data = policy(data, deterministic=True)
+            # data_frame.append(data.clone())
+            action = torch.tanh(data[("agents", "action")])
+
+            swarm.act(action,)
+            data_frame.append(data.clone())
+
+            cur_time = time.time()
+            dt = cur_time - last_time
+            print('time', dt)
+            last_time = cur_time
+
+
+
     # use PID controller to land
     init_pos = base_env.drone_state[..., :3]
     target_pos = init_pos.clone()
@@ -128,7 +153,7 @@ def main(cfg):
         data = step_mdp(data)
 
     swarm.end_program()
-    torch.save(data_frame, "rl_data/formation_ball_3_11_1.pt")
+    torch.save(data_frame, "rl_data/formation_ball_3_12_2.pt")
 
 if __name__ == "__main__":
     main()

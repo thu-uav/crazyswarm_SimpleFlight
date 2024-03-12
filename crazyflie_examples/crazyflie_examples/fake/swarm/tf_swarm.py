@@ -116,6 +116,8 @@ class Swarm():
                 self.drone_state[drone_id][4] = tf.transform.rotation.x
                 self.drone_state[drone_id][5] = tf.transform.rotation.y
                 self.drone_state[drone_id][6] = tf.transform.rotation.z
+                if self.drone_state[drone_id][3] < 0:
+                    self.drone_state[drone_id][..., 3:7] *= -1
             self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
             curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
             self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
@@ -145,7 +147,8 @@ class Swarm():
             roll_rate = float(np.clip(action[0] * 180. / torch.pi, -200., 200.))
             pitch_rate = float(np.clip(action[1] * 180. / torch.pi, -200., 200.))
             yaw_rate = float(np.clip(action[2] * 180. / torch.pi, -100., 100.))
-            cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, action[3])
+            thrust = float(max(0, min(0.9*2**16, action[3])))
+            cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, thrust)
         self.timeHelper.sleepForRate(rate)
 
     # # give cmd and act
