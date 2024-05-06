@@ -138,7 +138,7 @@ class Swarm():
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
         self.timeHelper.sleepForRate(rate)
     
-    def act_control(self, all_action, rate=50):
+    def act_control(self, all_action, rate=100):
         if self.test:
             return
         for id in range(self.num_cf):
@@ -147,8 +147,9 @@ class Swarm():
             roll_rate = float(np.clip(action[0] * 180. / torch.pi, -200., 200.))
             pitch_rate = float(np.clip(action[1] * 180. / torch.pi, -200., 200.))
             yaw_rate = float(np.clip(action[2] * 180. / torch.pi, -100., 100.))
-            thrust = float(max(0, min(0.9*2**16, action[3])))
-            cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, thrust)
+            thrust = (action[3] + 1) / 2 * self.mass
+            thrust = float(max(0, min(0.9, thrust)))
+            cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, thrust*2**16)
         self.timeHelper.sleepForRate(rate)
 
     # # give cmd and act

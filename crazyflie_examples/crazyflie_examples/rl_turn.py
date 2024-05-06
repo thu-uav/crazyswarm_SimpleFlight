@@ -102,7 +102,7 @@ def main(cfg):
             takeoff_data = takeoff_policy(takeoff_data, deterministic=True)
             action = torch.tanh(takeoff_data[("agents", "action")])
 
-            swarm.act(action, rate=cmd_fre)
+            swarm.act_control(action, rate=cmd_fre)
 
             cur_time = time.time()
             dt = cur_time - last_time
@@ -113,7 +113,7 @@ def main(cfg):
                 takeoff_env.target_pos = torch.tensor([[0., 0., 1.]])
 
         # real policy rollout
-        for _ in range(1000):
+        for _ in range(500):
             data = env.step(data) 
             data = step_mdp(data)
             
@@ -121,7 +121,7 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=180, rate=cmd_fre)
+            swarm.act_control(action, rate=cmd_fre)
 
             cur_time = time.time()
             dt = cur_time - last_time
@@ -137,7 +137,7 @@ def main(cfg):
             takeoff_data = takeoff_policy(takeoff_data, deterministic=True)
             action = torch.tanh(takeoff_data[("agents", "action")])
 
-            swarm.act(action, rate=cmd_fre)
+            swarm.act_control(action, rate=cmd_fre)
 
             cur_time = time.time()
             dt = cur_time - last_time
