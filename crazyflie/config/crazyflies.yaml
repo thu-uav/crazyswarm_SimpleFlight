@@ -25,36 +25,35 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf10:
-    enabled: true
-    uri: radio://1/78/2M/E7E7E7E70a
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
-
-  cf11:
-    enabled: true
-    uri: radio://2/82/2M/E7E7E7E70b
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
-
-  cf12:
-    enabled: true
-    uri: radio://0/84/2M/E7E7E7E70c
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
-
-  # cf13:
+  # cf10:
   #   enabled: true
-  #   uri: radio://1/88/2M/E7E7E7E70d
+  #   uri: radio://1/78/2M/E7E7E7E70a
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
+
+  # cf11:
+  #   enabled: true
+  #   uri: radio://2/82/2M/E7E7E7E70b
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+
+  # cf12:
+  #   enabled: true
+  #   uri: radio://0/84/2M/E7E7E7E70c
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+
+  cf13:
+    enabled: true
+    uri: radio://1/88/2M/E7E7E7E70d
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
   # cf9:
   #   enabled: true
   #   uri: radio://1/95/2M/E7E7E7E709
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
-
 
 
   # cf2:
@@ -137,14 +136,14 @@ all:
       # quat:
       #   frequency: 100 # Hz
       #   vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
-      # vel:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
+      vel:
+        frequency: 100 # Hz
+        vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
       # omega:
       #   frequency: 100 # Hz
       #   vars: ["gyro.x", "gyro.y", "gyro.z"]
       command_rpy:
-        frequency: 50
+        frequency: 100
         vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
       # real_rate:
       #   frequency: 100
