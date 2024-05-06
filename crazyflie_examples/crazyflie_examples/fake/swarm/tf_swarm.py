@@ -127,7 +127,7 @@ class Swarm():
 
         return self.drone_state.clone(), self.ball_state.clone(), self.obstacle_state.clone()
     
-    def act(self, all_action, rpy_scale=30, rate=50):
+    def act(self, all_action, rpy_scale=180, rate=100):
         if self.test:
             return
         for id in range(self.num_cf):
