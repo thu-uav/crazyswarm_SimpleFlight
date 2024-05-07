@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, Swarm, FakeTurn
+from fake import FakeHover, FakeTrack, Swarm, FakeTurn, FakeLine
 import time
 
 from crazyflie_py import Crazyswarm
@@ -58,10 +58,10 @@ def main(cfg):
 
     base_env = FakeHover(cfg, connection=True, swarm=swarm)
     cmd_fre = 100
-    rpy_scale = 30
+    rpy_scale = 180
 
     # load takeoff checkpoint
-    takeoff_ckpt = "model/1128_mlp.pt"
+    takeoff_ckpt = "model/hover/Hover.pt"
     takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
     takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
@@ -71,7 +71,7 @@ def main(cfg):
     # load checkpoint for deployment
     ckpt_name = "rl_data/turn/Line_clip100.pt"
     # ckpt_name = "model/origin.pt"
-    base_env = env = FakeTurn(cfg, connection=True, swarm=swarm)
+    base_env = env = FakeLine(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
     agent_spec = env.agent_spec["drone"]
@@ -96,9 +96,10 @@ def main(cfg):
         target_pos = takeoff_env.drone_state[..., :3]
         target_pos[..., 2] = 0.5
         takeoff_env.target_pos = target_pos
+        print('target_pos', target_pos)
 
         # takeoff
-        for timestep in range(400):
+        for timestep in range(800):
             takeoff_data = takeoff_env.step(takeoff_data)
             takeoff_data = step_mdp(takeoff_data)
             
@@ -113,26 +114,26 @@ def main(cfg):
             last_time = cur_time
 
 
-            if timestep == 200:
+            if timestep == 400:
                 target_pos = takeoff_env.drone_state[..., :3]
                 target_pos[..., 2] = 1.0
                 takeoff_env.target_pos = target_pos
 
-        # real policy rollout
-        for _ in range(500):
-            takeoff_data = env.step(takeoff_data) 
-            takeoff_data = step_mdp(takeoff_data)
+        # # real policy rollout
+        # for _ in range(500):
+        #     takeoff_data = env.step(takeoff_data) 
+        #     takeoff_data = step_mdp(takeoff_data)
             
-            takeoff_data = policy(takeoff_data, deterministic=True)
-            data_frame.append(takeoff_data.clone())
-            action = torch.tanh(takeoff_data[("agents", "action")])
+        #     takeoff_data = policy(takeoff_data, deterministic=True)
+        #     data_frame.append(takeoff_data.clone())
+        #     action = torch.tanh(takeoff_data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
+        #     swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
-            cur_time = time.time()
-            dt = cur_time - last_time
-            # print('time', dt)
-            last_time = cur_time
+        #     cur_time = time.time()
+        #     dt = cur_time - last_time
+        #     # print('time', dt)
+        #     last_time = cur_time
 
         # env.save_target_traj("8_1_demo.pt")
         # land
@@ -150,14 +151,12 @@ def main(cfg):
             # print('time', dt)
             last_time = cur_time
 
-            if timestep == 250:
+            if timestep == 400:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .5]])
 
-            if timestep == 400:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
-            
-            if timestep == 650:
+            if timestep == 600:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .1]])
+            
 
     swarm.end_program()
     

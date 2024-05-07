@@ -1,6 +1,7 @@
 from .hover import FakeHover
 from .track import FakeTrack
 from .turn import FakeTurn
+from .line import FakeLine
 from .multi_hover import MultiHover
 from .formation import Formation
 from .formation_ball import FormationBall
