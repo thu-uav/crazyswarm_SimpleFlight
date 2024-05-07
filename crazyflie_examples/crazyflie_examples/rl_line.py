@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, Swarm, FakeTurn, FakeLine
+from fake import FakeHover, FakeHover_old, FakeTrack, Swarm, FakeTurn, FakeLine
 import time
 
 from crazyflie_py import Crazyswarm
@@ -56,13 +56,13 @@ def main(cfg):
     # for cf in swarm.cfs:
     #     cf.setParam("pid_rate.yaw_kp", 360)
 
-    base_env = FakeHover(cfg, connection=True, swarm=swarm)
     cmd_fre = 100
     rpy_scale = 180
 
     # load takeoff checkpoint
-    takeoff_ckpt = "model/hover/Hover.pt"
-    takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
+    # takeoff_ckpt = "model/hover/Hover.pt"
+    takeoff_ckpt = "model/hover.pt"
+    takeoff_env = FakeHover_old(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
     takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
     takeoff_state_dict = torch.load(takeoff_ckpt)
