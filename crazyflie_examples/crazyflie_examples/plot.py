@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-name = 'cf4_origin_2'
+name = 'hover'
 data = torch.load('rl_data/'+name+'.pt')
 
 x = []
@@ -34,7 +34,7 @@ for frame in data:
 
 error = np.array(error)
 mean_e = np.mean(error)
-error = 0.5 - (error - np.min(error)) / (np.max(error) - np.min(error)) / 2
+# error = 0.5 - (error - np.min(error)) / (np.max(error) - np.min(error)) / 2
 
 color_map = get_cmap('gist_rainbow')
 colors = color_map(error)

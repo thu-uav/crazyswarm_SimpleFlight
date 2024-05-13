@@ -67,7 +67,6 @@ class Swarm():
             self.update_drone_state
         )
         self.last_time = 0.
-        self.mass = mass
         
         id = 0
         self.cf_map = {}
@@ -133,9 +132,10 @@ class Swarm():
         for id in range(self.num_cf):
             action = all_action[0][id].cpu().numpy().astype(float)
             cf = self.cfs[id]
-            thrust = (action[3] + 1) / 2 * self.mass
+            thrust = (action[3] + 1) / 2
             thrust = float(max(0, min(0.9, thrust)))
-            cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
+            # cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, action[2] * rpy_scale, thrust*2**16)
+            cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, 0.0, thrust*2**16)
         self.timeHelper.sleepForRate(rate)
     
     def act_control(self, all_action, rate=100):
@@ -147,7 +147,7 @@ class Swarm():
             roll_rate = float(np.clip(action[0] * 180. / torch.pi, -200., 200.))
             pitch_rate = float(np.clip(action[1] * 180. / torch.pi, -200., 200.))
             yaw_rate = float(np.clip(action[2] * 180. / torch.pi, -100., 100.))
-            thrust = (action[3] + 1) / 2 * self.mass
+            thrust = (action[3] + 1) / 2
             thrust = float(max(0, min(0.9, thrust)))
             cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, thrust*2**16)
         self.timeHelper.sleepForRate(rate)

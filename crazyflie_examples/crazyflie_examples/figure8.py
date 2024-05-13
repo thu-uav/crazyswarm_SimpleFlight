@@ -13,8 +13,8 @@ def main():
     allcfs = swarm.allcfs
 
     traj1 = Trajectory()
-    # traj1.loadcsv(Path(__file__).parent / 'data/figure8.csv')
-    traj1.loadcsv(Path(__file__).parent / 'data/turn/drone.csv')
+    traj1.loadcsv(Path(__file__).parent / 'data/figure8.csv')
+    # traj1.loadcsv(Path(__file__).parent / 'data/turn/drone.csv')
 
     # TODO set
 

@@ -53,7 +53,7 @@ def main(cfg):
 
     # real rl policy
     ckpt_name = "model/track_1130.pt"
-    cmd_fre = 50
+    cmd_fre = 100
     base_env = FakeTrack(cfg, connection=True, swarm=swarm)
     agent_spec = base_env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
