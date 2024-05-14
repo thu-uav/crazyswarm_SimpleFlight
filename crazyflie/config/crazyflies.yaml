@@ -142,9 +142,9 @@ all:
       omega:
         frequency: 100 # Hz
         vars: ["gyro.x", "gyro.y", "gyro.z"]
-      # command_rpy:
-      #   frequency: 100
-      #   vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
+      command_rpy:
+        frequency: 100
+        vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
       real_rate:
         frequency: 100
         vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
@@ -163,9 +163,9 @@ all:
       # rpy:
       #   frequency: 100 # Hz
       #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
-      motors_req:
-        frequency: 100
-        vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
+      # motors_req:
+      #   frequency: 100
+      #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
       # battery:
       #   frequency: 100
       #   vars: ['pm.vbat', 'pm.extVbat', 'pm.extCurr', 'pm.batteryLevel']
