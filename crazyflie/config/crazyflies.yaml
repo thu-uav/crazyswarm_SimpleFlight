@@ -157,15 +157,15 @@ all:
       # target_rpy:
       #   frequency: 100
       #   vars: ["controller.roll", "controller.pitch", "controller.yaw"]
-      # motors:
-      #   frequency: 100
-      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
+      motors:
+        frequency: 100
+        vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
       # rpy:
       #   frequency: 100 # Hz
       #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
-      # motors_req:
-      #   frequency: 100
-      #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
+      motors_req:
+        frequency: 100
+        vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
       # battery:
       #   frequency: 100
       #   vars: ['pm.vbat', 'pm.extVbat', 'pm.extCurr', 'pm.batteryLevel']
