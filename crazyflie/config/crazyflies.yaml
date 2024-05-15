@@ -3,7 +3,7 @@ robots:
 
   # cf3:
   #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E703
+  #   uri: radio://0/82/2M/E7E7E7E703
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
@@ -43,11 +43,18 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf13:
+  # cf13:
+  #   enabled: true
+  #   uri: radio://0/88/2M/E7E7E7E70d
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
+
+  cf14:
     enabled: true
-    uri: radio://0/88/2M/E7E7E7E70d
+    uri: radio://0/80/2M/E7E7E7E70e
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
+
 
   # cf9:
   #   enabled: true
@@ -144,7 +151,7 @@ all:
         vars: ["gyro.x", "gyro.y", "gyro.z"]
       command_rpy:
         frequency: 100
-        vars: ["controller.cmd_thrust", "controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw"]
+        vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
       real_rate:
         frequency: 100
         vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
