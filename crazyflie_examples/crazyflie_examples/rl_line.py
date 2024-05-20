@@ -57,11 +57,11 @@ def main(cfg):
     #     cf.setParam("pid_rate.yaw_kp", 360)
 
     cmd_fre = 100
-    rpy_scale = 60
+    rpy_scale = 180
 
     # load takeoff checkpoint
-    # takeoff_ckpt = "model/hover/Hover_yaw0_bodyrate04_thrust09.pt"
-    takeoff_ckpt = "model/1128_mlp.pt"
+    takeoff_ckpt = "model/hover/Hover_opt.pt"
+    # takeoff_ckpt = "model/1128_mlp.pt"
     takeoff_env = FakeHover_old(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
     takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
@@ -137,7 +137,7 @@ def main(cfg):
 
         # env.save_target_traj("8_1_demo.pt")
         # land
-        for timestep in range(800):
+        for timestep in range(1200):
             takeoff_data = takeoff_env.step(takeoff_data)
             takeoff_data = step_mdp(takeoff_data)
 
@@ -151,26 +151,22 @@ def main(cfg):
             # print('time', dt)
             last_time = cur_time
 
-            if timestep == 100:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .9]])
-
             if timestep == 200:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .8]])
-
-            if timestep == 300:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .7]])
+                takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
 
             if timestep == 400:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .6]])
-
-            if timestep == 500:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .5]])
+                takeoff_env.target_pos = torch.tensor([[0., 0., .8]])
 
             if timestep == 600:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .6]])
+
+            if timestep == 800:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .4]])
 
-            if timestep == 700:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .3]])
+            if timestep == 1000:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
+
+
             
 
     swarm.end_program()
