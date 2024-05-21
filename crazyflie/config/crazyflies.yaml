@@ -37,11 +37,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf12:
-    enabled: true
-    uri: radio://0/84/2M/E7E7E7E70c
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf12:
+  #   enabled: true
+  #   uri: radio://0/84/2M/E7E7E7E70c
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf13:
   #   enabled: true
@@ -49,11 +49,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf14:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E70e
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf14:
+    enabled: true
+    uri: radio://0/80/2M/E7E7E7E70e
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
 
   # cf9:
@@ -119,7 +119,7 @@ all:
   # firmware logging for all drones (use robot_types/type_name to set per type, or
   # robots/drone_name to set per drone)
   firmware_logging:
-    enabled: true
+    enabled: false
     # default_topics:
      # remove to disable default topic
       # pose:
