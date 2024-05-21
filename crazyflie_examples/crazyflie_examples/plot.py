@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-name = 'hover'
+name = 'star'
 data = torch.load('rl_data/'+name+'.pt')
 
 x = []

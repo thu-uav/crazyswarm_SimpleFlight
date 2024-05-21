@@ -32,8 +32,8 @@ class FakeTrack(FakeEnv):
             torch.tensor(0., device=self.device)
         )
         self.traj_scale_dist = D.Uniform( # smaller than training
-            torch.tensor([1.8, 1.8, 1.], device=self.device),
-            torch.tensor([1.8, 1.8, 1.], device=self.device)
+            torch.tensor([1.2, 1.2, 1.], device=self.device),
+            torch.tensor([1.2, 1.2, 1.], device=self.device)
         )
 
 
@@ -145,9 +145,9 @@ class FakeTrack(FakeEnv):
         traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
         # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
-        target_pos = vmap(circle)(t)
+        # target_pos = vmap(circle)(t)
         # target_pos = square(t)
-        # target_pos = vmap(pentagram)(t, self.traj_c[env_ids])
+        target_pos = vmap(pentagram)(t, self.traj_c[env_ids])
         target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
 
         return self.origin + target_pos
@@ -156,8 +156,8 @@ class FakeTrack(FakeEnv):
         torch.save(self.target_poses, name)
 
 def pentagram(t, c):
-    x = -1.5 * torch.sin(2 * t) - 0.5 * torch.sin(3 * t)
-    y = 1.5 * torch.cos(2 * t) - 0.5 * torch.cos(3 * t)
+    x = -1.0 * torch.sin(2 * t) - 0.5 * torch.sin(3 * t)
+    y = 1.0 * torch.cos(2 * t) - 0.5 * torch.cos(3 * t)
     # x = -1.1 * torch.sin(2 * t) - 0.5 * torch.sin(3 * t)
     # y = 1.1 * torch.cos(2 * t) - 0.5 * torch.cos(3 * t)
     z = torch.zeros_like(t)

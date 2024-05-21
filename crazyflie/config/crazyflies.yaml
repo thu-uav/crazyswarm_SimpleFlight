@@ -37,17 +37,17 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf12:
-  #   enabled: true
-  #   uri: radio://0/84/2M/E7E7E7E70c
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  cf13:
+  cf12:
     enabled: true
-    uri: radio://0/88/2M/E7E7E7E70D
+    uri: radio://0/84/2M/E7E7E7E70c
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
+
+  # cf13:
+  #   enabled: true
+  #   uri: radio://0/88/2M/E7E7E7E70D
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf14:
   #   enabled: true

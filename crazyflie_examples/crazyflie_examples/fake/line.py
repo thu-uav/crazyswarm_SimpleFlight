@@ -28,19 +28,19 @@ class FakeLine(FakeEnv):
         )
 
         self.a_scale_dist = D.Uniform(
-            torch.tensor(3.0, device=self.device),
-            torch.tensor(3.0, device=self.device)
+            torch.tensor(1.0, device=self.device),
+            torch.tensor(1.0, device=self.device)
         )
         
         self.threshold_scale_dist = D.Uniform(
-            torch.tensor(0.5 * scale_time(torch.tensor(self.max_episode_length * self.dt)), device=self.device),
-            torch.tensor(0.5 * scale_time(torch.tensor(self.max_episode_length * self.dt)), device=self.device)
+            torch.tensor(0.5 * torch.tensor(self.max_episode_length * self.dt), device=self.device),
+            torch.tensor(0.5 * torch.tensor(self.max_episode_length * self.dt), device=self.device)
         )
         
-        self.c_scale_dist = D.Uniform(
-            torch.tensor(0.9, device=self.device),
-            torch.tensor(0.9, device=self.device)
-        )
+        # self.c_scale_dist = D.Uniform(
+        #     torch.tensor(0.9, device=self.device),
+        #     torch.tensor(0.9, device=self.device)
+        # )
 
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
 
@@ -48,7 +48,7 @@ class FakeLine(FakeEnv):
         # self.v_scale = torch.zeros(self.num_envs, device=self.device)
         self.a_scale = torch.zeros(self.num_envs, device=self.device)
         self.threshold_scale = torch.zeros(self.num_envs, device=self.device)
-        self.c_scale = torch.zeros(self.num_envs, device=self.device)
+        # self.c_scale = torch.zeros(self.num_envs, device=self.device)
 
         self.last_linear_v = torch.zeros(self.num_envs, 1, device=self.device)
         self.last_angular_v = torch.zeros(self.num_envs, 1, device=self.device)
@@ -63,7 +63,7 @@ class FakeLine(FakeEnv):
         env_ids = torch.tensor([0])
         self.a_scale[env_ids] = self.a_scale_dist.sample(env_ids.shape)
         self.threshold_scale[env_ids] = self.threshold_scale_dist.sample(env_ids.shape)
-        self.c_scale[env_ids] = self.c_scale_dist.sample(env_ids.shape)
+        # self.c_scale[env_ids] = self.c_scale_dist.sample(env_ids.shape)
 
         self.target_poses = []
 
@@ -72,7 +72,7 @@ class FakeLine(FakeEnv):
         observation_dim = 3 + 3 + 4 + 3 + 3 # position, velocity, quaternion, heading, up, relative heading
         observation_dim += 3 * (self.future_traj_steps-1)
 
-        observation_dim += 4 # acc + jerk
+        # observation_dim += 4 # acc + jerk
 
         if self.cfg.task.time_encoding:
             self.time_encoding_dim = 4
@@ -125,29 +125,29 @@ class FakeLine(FakeEnv):
         t = self.progress_buf / self.max_episode_length
         obs.append(torch.ones((self.num_cf, 4), device=self.device) * t)
 
-        # linear_v, angular_v
-        self.linear_v = torch.norm(self.drone_state[..., 7:10], dim=-1).unsqueeze(1).to(self.device)
-        self.angular_v = torch.norm(self.drone_state[..., 10:13], dim=-1).unsqueeze(1).to(self.device)
-        # linear_a, angular_a
-        self.linear_a = torch.abs(self.linear_v - self.last_linear_v) / self.dt
-        self.angular_a = torch.abs(self.angular_v - self.last_angular_v) / self.dt
-        # linear_jerk, angular_jerk
-        self.linear_jerk = torch.abs(self.linear_a - self.last_linear_a) / self.dt
-        self.angular_jerk = torch.abs(self.angular_a - self.last_angular_a) / self.dt
+        # # linear_v, angular_v
+        # self.linear_v = torch.norm(self.drone_state[..., 7:10], dim=-1).unsqueeze(1).to(self.device)
+        # self.angular_v = torch.norm(self.drone_state[..., 10:13], dim=-1).unsqueeze(1).to(self.device)
+        # # linear_a, angular_a
+        # self.linear_a = torch.abs(self.linear_v - self.last_linear_v) / self.dt
+        # self.angular_a = torch.abs(self.angular_v - self.last_angular_v) / self.dt
+        # # linear_jerk, angular_jerk
+        # self.linear_jerk = torch.abs(self.linear_a - self.last_linear_a) / self.dt
+        # self.angular_jerk = torch.abs(self.angular_a - self.last_angular_a) / self.dt
 
-        # set last
-        self.last_linear_v = self.linear_v.clone()
-        self.last_angular_v = self.angular_v.clone()
-        self.last_linear_a = self.linear_a.clone()
-        self.last_angular_a = self.angular_a.clone()
-        self.last_linear_jerk = self.linear_jerk.clone()
-        self.last_angular_jerk = self.angular_jerk.clone()
+        # # set last
+        # self.last_linear_v = self.linear_v.clone()
+        # self.last_angular_v = self.angular_v.clone()
+        # self.last_linear_a = self.linear_a.clone()
+        # self.last_angular_a = self.angular_a.clone()
+        # self.last_linear_jerk = self.linear_jerk.clone()
+        # self.last_angular_jerk = self.angular_jerk.clone()
         
-        # add acc and jerk
-        obs.append(self.linear_a / 10.0)
-        obs.append(self.angular_a / 100.0)
-        obs.append(self.linear_jerk / 1000.0)
-        obs.append(self.angular_jerk / 10000.0)
+        # # add acc and jerk
+        # obs.append(self.linear_a / 10.0)
+        # obs.append(self.angular_a / 100.0)
+        # obs.append(self.linear_jerk / 1000.0)
+        # obs.append(self.angular_jerk / 10000.0)
         
         obs = torch.cat(obs, dim=-1).unsqueeze(1)
 
@@ -181,14 +181,15 @@ class FakeLine(FakeEnv):
         if env_ids is None:
             env_ids = ...
         t = self.progress_buf + step_size * torch.arange(steps, device=self.device)
-        t = self.traj_t0 + scale_time(torch.ones((self.num_envs, 1), device=self.device)[env_ids] * t * self.dt)
+        t = self.traj_t0 + torch.ones((self.num_envs, 1), device=self.device)[env_ids] * t * self.dt
+        # t = self.traj_t0 + scale_time(torch.ones((self.num_envs, 1), device=self.device)[env_ids] * t * self.dt)
         # t = self.traj_t0 + torch.ones((self.num_envs, 1), device=self.device) * t * self.dt
         # traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
         # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
         # target_pos = vmap(line_segments)(t, self.v_scale[env_ids], self.threshold_scale[env_ids], torch.pi * self.c_scale[env_ids])
         # target_pos = vmap(line_segments_acc)(t, self.a_scale[env_ids], self.threshold_scale[env_ids], torch.pi * self.c_scale[env_ids])
-        target_pos = vmap(line_acc)(t, self.a_scale[env_ids])
+        target_pos = vmap(line_acc)(t, self.a_scale[env_ids], self.threshold_scale[env_ids])
         # target_pos = vmap(torch_utils.quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
 
         return self.origin + target_pos
@@ -196,8 +197,10 @@ class FakeLine(FakeEnv):
     def save_target_traj(self, name):
         torch.save(self.target_poses, name)
 
-def line_acc(t, a):
-    x = 0.5 * a * t**2
+
+def line_acc(t, a, threshold):
+    v_max = a * threshold
+    x = torch.where(t <= threshold, 0.5 * a * t**2, 0.5 * a * threshold**2 + v_max * (t - threshold) - 0.5 * a * (t - threshold)**2)
     y = torch.zeros_like(t)
     z = torch.zeros_like(t)
 

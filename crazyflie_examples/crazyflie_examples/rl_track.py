@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, Swarm, PID, MultiHover
+from fake import FakeHover, FakeTrack, Swarm, FakeTurn, FakeLine
 import time
 
 from crazyflie_py import Crazyswarm
@@ -45,73 +45,78 @@ def main(cfg):
     OmegaConf.resolve(cfg)
     OmegaConf.set_struct(cfg, False)
     print(OmegaConf.to_yaml(cfg))
+    torch.manual_seed(cfg.seed)
 
     algos = {
         "mappo": MAPPOPolicy, 
     }
-    swarm = Swarm(cfg, test=False)
 
-    # real rl policy
-    ckpt_name = "model/track_1130.pt"
+    # swarm = Swarm(cfg, test=False, mass=31.6 / 34.3)
+    swarm = Swarm(cfg, test=False)
+    # for cf in swarm.cfs:
+    #     cf.setParam("pid_rate.yaw_kp", 360)
+
     cmd_fre = 100
-    base_env = FakeTrack(cfg, connection=True, swarm=swarm)
-    agent_spec = base_env.agent_spec["drone"]
+    rpy_scale = 180
+
+    # load takeoff checkpoint
+    takeoff_ckpt = "model/hover/Hover_opt.pt"
+    # takeoff_ckpt = "model/1128_mlp.pt"
+    takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
+    takeoff_agent_spec = takeoff_env.agent_spec["drone"]
+    takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
+    takeoff_state_dict = torch.load(takeoff_ckpt)
+    takeoff_policy.load_state_dict(takeoff_state_dict)
+    
+    # load checkpoint for deployment
+    ckpt_name = "model/star/Track_star.pt"
+    # ckpt_name = "model/star/Track_star_cf11.pt"
+    base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
+    # ckpt_name = "model/1128_mlp.pt"
+    # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
+    agent_spec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
     state_dict = torch.load(ckpt_name)
     policy.load_state_dict(state_dict)
+
     with torch.no_grad():
         # the first inference takes significantly longer time. This is a warm up
         data = base_env.reset().to(dest=base_env.device)
         data = policy(data, deterministic=True)
 
-    swarm.init()
-    controller = PID(device=base_env.device)
+        data = takeoff_env.reset().to(dest=takeoff_env.device)
+        data = takeoff_policy(data, deterministic=True)
 
-    base_env.set_seed(cfg.seed)
-    data = base_env.reset().to(dest=base_env.device)
+        swarm.init()
 
-    init_pos = base_env.drone_state[..., :3]
-    target_pos = init_pos.clone()
-    target_pos[..., 2] = 1.0
-    controller.set_pos(
-        init_pos=init_pos,
-        target_pos=target_pos
-        )
-    print("init pos", init_pos)
-    print("target pos", target_pos)
+        last_time = time.time()
+        data_frame = []
 
-    action = controller(base_env.drone_state, timestep=0)
-    data['agents', 'action'] = action.to(base_env.device)
-    data = base_env.step(data)
-    data = step_mdp(data)
-    
-    init_pos = base_env.drone_state[..., :3]
-    target_pos = init_pos.clone()
-    target_pos[..., 2] = 1.0
-    controller.set_pos(
-        init_pos=init_pos,
-        target_pos=target_pos
-        )
-    print("init pos", init_pos)
-    print("target pos", target_pos)
+        # update observation
+        target_pos = takeoff_env.drone_state[..., :3]
+        target_pos[..., 2] = 1.0
+        # takeoff_env.target_pos = target_pos
+        takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
 
-    # use PID controller to takeoff
-    for i in range(200):
-        action = controller(base_env.drone_state, timestep=i)
-        data['agents', 'action'] = action.to(base_env.device)
-        swarm.act_control(action)
-        # print(action)
+        # takeoff
+        for timestep in range(300):
+            data = takeoff_env.step(data)
+            data = step_mdp(data)
+            
+            data = takeoff_policy(data, deterministic=True)
+            action = torch.tanh(data[("agents", "action")])
 
-        data = base_env.step(data)
-        data = step_mdp(data)
+            swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
+            cur_time = time.time()
+            dt = cur_time - last_time
+            # print('time', dt)
+            last_time = cur_time
+        
+        print('start pos', takeoff_env.drone_state[..., :3])
 
-    data_frame = []
-    # use reset
-    # base_env.reset().to(dest=base_env.device)
-    with torch.no_grad():
         # real policy rollout
-        for _ in range(1000):
+        for _ in range(1200):
             data = base_env.step(data) 
             data = step_mdp(data)
             
@@ -119,32 +124,49 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=60, rate=cmd_fre)
-            
-    
-    # use PID controller to land
-    init_pos = base_env.drone_state[..., :3]
-    target_pos = init_pos.clone()
-    target_pos[..., 2] = 0.1
-    controller.set_pos(
-        init_pos=init_pos,
-        target_pos=target_pos
-        )
-    print("init pos", init_pos)
-    print("target pos", target_pos)
+            swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
-    for i in range(200):
-        action = controller(base_env.drone_state, timestep=i)
-        data['agents', 'action'] = action.to(base_env.device)
-        swarm.act_control(action)
-        # print(action)
+            cur_time = time.time()
+            dt = cur_time - last_time
+            # print('time', dt)
+            last_time = cur_time
 
-        data = base_env.step(data)
-        data = step_mdp(data)
+        # env.save_target_traj("8_1_demo.pt")
+        # land
+        for timestep in range(1200):
+            data = takeoff_env.step(data)
+            data = step_mdp(data)
+
+            data = takeoff_policy(data, deterministic=True)
+            action = torch.tanh(data[("agents", "action")])
+
+            swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
+
+            cur_time = time.time()
+            dt = cur_time - last_time
+            # print('time', dt)
+            last_time = cur_time
+
+            if timestep == 200:
+                takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
+
+            if timestep == 400:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .8]])
+
+            if timestep == 600:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .6]])
+
+            if timestep == 800:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .4]])
+
+            if timestep == 1000:
+                takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
+        print('land pos', takeoff_env.drone_state[..., :3])
+
 
     swarm.end_program()
-
-    torch.save(data_frame, "rl_data/hover.pt")
+    
+    torch.save(data_frame, "rl_data/star.pt")
 
 if __name__ == "__main__":
     main()

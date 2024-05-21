@@ -1,5 +1,4 @@
 from .hover import FakeHover
-from .hover_old import FakeHover_old
 from .track import FakeTrack
 from .turn import FakeTurn
 from .line import FakeLine
