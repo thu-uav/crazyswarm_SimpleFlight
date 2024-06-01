@@ -60,7 +60,8 @@ def main(cfg):
     rpy_scale = 180
 
     # load takeoff checkpoint
-    takeoff_ckpt = "model/hover/Hover_opt.pt"
+    # takeoff_ckpt = "model/hover/Hover_opt.pt"
+    takeoff_ckpt = "model/hover/Hover_rapid.pt"
     # takeoff_ckpt = "model/1128_mlp.pt"
     takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
@@ -69,8 +70,8 @@ def main(cfg):
     takeoff_policy.load_state_dict(takeoff_state_dict)
     
     # load checkpoint for deployment
-    ckpt_name = "model/star/Track_star_random.pt"
-    # ckpt_name = "model/star/Track_star_cf11.pt"
+    ckpt_name = "model/star/Track_star.pt"
+    # ckpt_name = "model/star/finetune_smooth.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
@@ -115,21 +116,21 @@ def main(cfg):
         
         print('start pos', takeoff_env.drone_state[..., :3])
 
-        # # real policy rollout
-        # for _ in range(1200):
-        #     data = base_env.step(data) 
-        #     data = step_mdp(data)
+        # real policy rollout
+        for _ in range(1050):
+            data = base_env.step(data) 
+            data = step_mdp(data)
             
-        #     data = policy(data, deterministic=True)
-        #     data_frame.append(data.clone())
-        #     action = torch.tanh(data[("agents", "action")])
+            data = policy(data, deterministic=True)
+            data_frame.append(data.clone())
+            action = torch.tanh(data[("agents", "action")])
 
-        #     swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
+            swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
-        #     cur_time = time.time()
-        #     dt = cur_time - last_time
-        #     # print('time', dt)
-        #     last_time = cur_time
+            cur_time = time.time()
+            dt = cur_time - last_time
+            # print('time', dt)
+            last_time = cur_time
 
         # env.save_target_traj("8_1_demo.pt")
         # land
