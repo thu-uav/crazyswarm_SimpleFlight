@@ -32,8 +32,8 @@ class FakeTrack(FakeEnv):
             torch.tensor(0., device=self.device)
         )
         self.traj_scale_dist = D.Uniform( # smaller than training
-            torch.tensor([0.8, 0.8, 0.25], device=self.device),
-            torch.tensor([0.8, 0.8, 0.25], device=self.device)
+            torch.tensor([0.5, 0.5, 0.25], device=self.device),
+            torch.tensor([0.5, 0.5, 0.25], device=self.device)
         )
 
 
@@ -55,8 +55,9 @@ class FakeTrack(FakeEnv):
         self.traj_c[env_ids] = self.traj_c_dist.sample(env_ids.shape)
         self.traj_rot[env_ids] = euler_to_quaternion(self.traj_rpy_dist.sample(env_ids.shape))
         self.traj_scale[env_ids] = self.traj_scale_dist.sample(env_ids.shape)
-        traj_w = self.traj_w_dist.sample(env_ids.shape)
-        self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
+        # traj_w = self.traj_w_dist.sample(env_ids.shape)
+        # self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
+        self.traj_w[env_ids] = self.traj_w_dist.sample(env_ids.shape)
 
         self.target_poses = []
 

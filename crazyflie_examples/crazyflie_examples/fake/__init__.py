@@ -1,5 +1,6 @@
 from .hover import FakeHover
 from .track import FakeTrack
+from .zigzag import FakeZigZag
 from .turn import FakeTurn
 from .line import FakeLine
 from .multi_hover import MultiHover

@@ -70,8 +70,8 @@ def main(cfg):
     takeoff_policy.load_state_dict(takeoff_state_dict)
     
     # load checkpoint for deployment
-    ckpt_name = "model/star/Track_star.pt"
-    # ckpt_name = "model/star/finetune_smooth.pt"
+    ckpt_name = "model/star/Track_star_debug.pt"
+    # ckpt_name = "model/star/checkpoint_final.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # ckpt_name = "model/1128_mlp.pt"
     # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
