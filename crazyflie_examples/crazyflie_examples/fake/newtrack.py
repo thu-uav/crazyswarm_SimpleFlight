@@ -10,7 +10,7 @@ import collections
 from tensordict.tensordict import TensorDict, TensorDictBase
 from functorch import vmap
 
-class FakeTrack(FakeEnv):
+class FakeNewTrack(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.num_envs = 1
@@ -19,7 +19,6 @@ class FakeTrack(FakeEnv):
         self.dt = 0.01
         self.num_cf = 1
         self.max_episode_length = 1000
-        self.use_last_vel = False
 
         super().__init__(cfg, connection, swarm)
 
@@ -61,27 +60,13 @@ class FakeTrack(FakeEnv):
         # self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
         self.traj_w[env_ids] = self.traj_w_dist.sample(env_ids.shape)
 
-        # set last vel
-        if self.use_last_vel:
-            self.update_drone_state()
-            self.last_linear_v3 = self.drone_state[..., 7:10].clone()
-            self.last_angular_v3 = self.drone_state[..., 10:13].clone()
-
-        self.linear_v = []
-        self.angular_v = []
-        self.linear_a = []
-        self.angular_a = []
-
         self.target_poses = []
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
-        observation_dim = 3 + 3 + 4 + 3 + 3 # only best model
-        observation_dim = 3 + 4 + 6 # position, velocity, quaternion
+        # observation_dim = 3 + 3 + 4 + 3 + 3 # position, velocity, quaternion, heading, up, relative heading
+        observation_dim = 3 + 3 + 4 + 3
         observation_dim += 3 * (self.future_traj_steps-1)
-
-        if self.use_last_vel:
-            observation_dim += 6
 
         if self.cfg.task.time_encoding:
             self.time_encoding_dim = 4
@@ -126,28 +111,13 @@ class FakeTrack(FakeEnv):
         self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=5)
         # print(self.target_pos[:, 0])
         self.rpos = self.target_pos.cpu() - self.drone_state[..., :3]
-        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19], torch.zeros((self.num_cf, 4))]
+        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:], torch.zeros((self.num_cf, 4))]
         
-        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19]] # only best model
-
-        obs = [self.rpos.flatten(1), self.drone_state[..., 3:13]]
+        obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:]]
         t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
         obs.append(t)
 
-        if self.use_last_vel:
-            obs.append(self.last_linear_v3)
-            obs.append(self.last_angular_v3)
-
         obs = torch.concat(obs, dim=1).unsqueeze(0)
-
-        # set last
-        self.last_linear_v3 = self.drone_state[..., 7:10].clone()
-        self.last_angular_v3 = self.drone_state[..., 10:13].clone()
-
-        # self.linear_v.append(self.drone_state[..., 7:10])
-        # self.angular_v.append(self.drone_state[..., 10:13])
-        # self.linear_a.append(self.drone_state[..., -2])
-        # self.angular_a.append(self.drone_state[..., -1])
 
 
         # self.target_poses.append(self.target_pos[-1].clone())

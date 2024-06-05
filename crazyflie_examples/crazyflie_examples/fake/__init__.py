@@ -1,5 +1,6 @@
 from .hover import FakeHover
 from .track import FakeTrack
+from .newtrack import FakeNewTrack
 from .zigzag import FakeZigZag
 from .turn import FakeTurn
 from .line import FakeLine

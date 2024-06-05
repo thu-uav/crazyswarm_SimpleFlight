@@ -14,7 +14,8 @@ class FakeHover(FakeEnv):
         self.num_cf = 1
         super().__init__(cfg, connection, swarm)
         
-        self.target_pos = torch.tensor([[0., 0., 1.]])   
+        self.target_pos = torch.tensor([[0., 0., 1.]])
+        self.max_episode_length = 500
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -55,7 +56,12 @@ class FakeHover(FakeEnv):
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
         self.rpos = self.target_pos - self.drone_state[..., :3]
-        obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 13:], torch.zeros((self.num_cf, 4))]
+        obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 13:19], torch.zeros((self.num_cf, 4))]
+        
+        # obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 13:]]
+        # t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
+        # obs.append(t)
+
         obs = torch.concat(obs, dim=1).unsqueeze(0)
 
         return TensorDict({

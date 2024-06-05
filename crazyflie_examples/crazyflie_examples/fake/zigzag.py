@@ -10,7 +10,7 @@ import collections
 from tensordict.tensordict import TensorDict, TensorDictBase
 from functorch import vmap
 
-class FakeTrack(FakeEnv):
+class FakeZigZag(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.num_envs = 1
@@ -18,70 +18,48 @@ class FakeTrack(FakeEnv):
         self.future_traj_steps = 4
         self.dt = 0.01
         self.num_cf = 1
-        self.max_episode_length = 1000
-        self.use_last_vel = False
 
         super().__init__(cfg, connection, swarm)
 
-        self.traj_rpy_dist = D.Uniform(
-            torch.tensor([0., 0., 0.], device=self.device) * torch.pi,
-            torch.tensor([0., 0., 0.], device=self.device) * torch.pi
+        self.init_rpy_dist = D.Uniform(
+            torch.tensor([-0.0, -0.0, 0.], device=self.device) * torch.pi,
+            torch.tensor([0.0, 0.0, 0.], device=self.device) * torch.pi
         )
-
-
-        self.traj_c_dist = D.Uniform(
-            torch.tensor(-0., device=self.device),
-            torch.tensor(0., device=self.device)
-        )
-        self.traj_scale_dist = D.Uniform( # smaller than training
-            torch.tensor([0.5, 0.5, 0.25], device=self.device),
-            torch.tensor([0.5, 0.5, 0.25], device=self.device)
-        )
-
-
-        self.traj_w_dist = D.Uniform(
-            torch.tensor(1.0, device=self.device),
-            torch.tensor(1.0, device=self.device)
+        
+        # eval
+        self.target_times_dist = D.Uniform(
+            torch.tensor(1.3, device=self.device),
+            torch.tensor(1.3, device=self.device)
         )
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
+        self.num_points = 20
 
         self.traj_t0 = 0.0
-        self.traj_c = torch.zeros(self.num_envs, device=self.device)
-        self.traj_scale = torch.zeros(self.num_envs, 3, device=self.device)
-        self.traj_rot = torch.zeros(self.num_envs, 4, device=self.device)
-        self.traj_w = torch.ones(self.num_envs, device=self.device)
+        self.target_times = torch.zeros(self.num_envs, self.num_points - 1, device=self.device)
+        self.target_points = torch.zeros(self.num_envs, self.num_points, 2, device=self.device)
         self.target_pos = torch.zeros(self.num_envs, self.future_traj_steps, 3, device=self.device)
 
         # reset / initialize
         env_ids = torch.tensor([0])
-        self.traj_c[env_ids] = self.traj_c_dist.sample(env_ids.shape)
-        self.traj_rot[env_ids] = euler_to_quaternion(self.traj_rpy_dist.sample(env_ids.shape))
-        self.traj_scale[env_ids] = self.traj_scale_dist.sample(env_ids.shape)
-        # traj_w = self.traj_w_dist.sample(env_ids.shape)
-        # self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
-        self.traj_w[env_ids] = self.traj_w_dist.sample(env_ids.shape)
+        self.target_times[env_ids] = torch.ones((env_ids.shape[0], self.num_points - 1), device=self.device) * self.target_times_dist.sample(torch.Size([env_ids.shape[0], 1]))
+        
+        # star_points = torch.Tensor([[0.0, 0.0], [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
+        #     [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
+        #     [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
+        #     [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6]]).to(self.device) * 2.0
+        star_points = torch.Tensor([[0.0, 0.0], [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
+            [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
+            [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
+            [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6]]).to(self.device)
+        self.target_points[env_ids] = star_points
 
-        # set last vel
-        if self.use_last_vel:
-            self.update_drone_state()
-            self.last_linear_v3 = self.drone_state[..., 7:10].clone()
-            self.last_angular_v3 = self.drone_state[..., 10:13].clone()
-
-        self.linear_v = []
-        self.angular_v = []
-        self.linear_a = []
-        self.angular_a = []
 
         self.target_poses = []
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
-        observation_dim = 3 + 3 + 4 + 3 + 3 # only best model
-        observation_dim = 3 + 4 + 6 # position, velocity, quaternion
+        observation_dim = 3 + 3 + 4 + 3 + 3 # position, velocity, quaternion, heading, up, relative heading
         observation_dim += 3 * (self.future_traj_steps-1)
-
-        if self.use_last_vel:
-            observation_dim += 6
 
         if self.cfg.task.time_encoding:
             self.time_encoding_dim = 4
@@ -123,32 +101,11 @@ class FakeTrack(FakeEnv):
 
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
-        self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=5)
+        self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=1)
         # print(self.target_pos[:, 0])
         self.rpos = self.target_pos.cpu() - self.drone_state[..., :3]
-        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19], torch.zeros((self.num_cf, 4))]
-        
-        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19]] # only best model
-
-        obs = [self.rpos.flatten(1), self.drone_state[..., 3:13]]
-        t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
-        obs.append(t)
-
-        if self.use_last_vel:
-            obs.append(self.last_linear_v3)
-            obs.append(self.last_angular_v3)
-
+        obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:], torch.zeros((self.num_cf, 4))]
         obs = torch.concat(obs, dim=1).unsqueeze(0)
-
-        # set last
-        self.last_linear_v3 = self.drone_state[..., 7:10].clone()
-        self.last_angular_v3 = self.drone_state[..., 10:13].clone()
-
-        # self.linear_v.append(self.drone_state[..., 7:10])
-        # self.angular_v.append(self.drone_state[..., 10:13])
-        # self.linear_a.append(self.drone_state[..., -2])
-        # self.angular_a.append(self.drone_state[..., -1])
-
 
         # self.target_poses.append(self.target_pos[-1].clone())
 
@@ -180,19 +137,42 @@ class FakeTrack(FakeEnv):
 
     def _compute_traj(self, steps: int, env_ids=torch.tensor([0]), step_size: float=1.):
         t = self.progress_buf + step_size * torch.arange(steps, device=self.device)
-        t = self.traj_t0 + scale_time(self.traj_w[env_ids].unsqueeze(1) * t * self.dt)
-        traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
-        
-        # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
-        # target_pos = vmap(circle)(t)
-        # target_pos = square(t)
-        target_pos = vmap(pentagram)(t)
-        target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
+        t = (self.traj_t0 + t * self.dt).unsqueeze(0)
+        target_pos = vmap(zigzag)(t, self.target_times[env_ids], self.target_points[env_ids])
 
         return self.origin + target_pos
 
     def save_target_traj(self, name):
         torch.save(self.target_poses, name)
+
+def zigzag(t, target_times, target_points):
+    # target_times: [batch, num_points]
+    # target_points: [batch, num_points, 2]
+    
+    target_times = torch.concat([torch.zeros(1, device=target_times.device), torch.cumsum(target_times, dim=0)])
+    num_points = target_times.shape[0]
+    
+    times_expanded = target_times.unsqueeze(0).expand(t.shape[-1], -1)
+    t_expanded = t.unsqueeze(-1)
+    prev_idx = num_points - (times_expanded > t_expanded).sum(dim=-1) - 1
+    next_idx = num_points - (times_expanded > t_expanded).sum(dim=-1)
+    # clip
+    prev_idx = torch.clamp(prev_idx, max=num_points - 2) # [batch, future_step]
+    next_idx = torch.clamp(next_idx, max=num_points - 1) # [batch, future_step]
+
+    prev_x = torch.gather(target_points[:,0], 0, prev_idx) # [batch, future_step]
+    next_x = torch.gather(target_points[:,0], 0, next_idx)
+    prev_y = torch.gather(target_points[:,1], 0, prev_idx)
+    next_y = torch.gather(target_points[:,1], 0, next_idx)
+    prev_times = torch.gather(target_times, 0, prev_idx)
+    next_times = torch.gather(target_times, 0, next_idx)
+    k_x = (next_x - prev_x) / (next_times - prev_times)
+    k_y = (next_y - prev_y) / (next_times - prev_times)
+    x = prev_x + k_x * (t - prev_times) # [batch, future_step]
+    y = prev_y + k_y * (t - prev_times)
+    z = torch.zeros_like(x)
+    
+    return torch.stack([x, y, z], dim=-1)
 
 def pentagram(t):
     x = -1.0 * torch.sin(2 * t) - 0.5 * torch.sin(3 * t)

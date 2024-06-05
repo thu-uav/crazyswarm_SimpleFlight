@@ -33,12 +33,11 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, FakeNewTrack, Swarm, FakeTurn, FakeLine
+from fake import FakeHover, FakeZigZag, Swarm, FakeTurn, FakeLine
 import time
 
 from crazyflie_py import Crazyswarm
 from torchrl.envs.utils import step_mdp
-import collections
 
 @hydra.main(version_base=None, config_path=CONFIG_PATH, config_name="deploy")
 def main(cfg):
@@ -71,15 +70,11 @@ def main(cfg):
     takeoff_policy.load_state_dict(takeoff_state_dict)
     
     # load checkpoint for deployment
-    use_action_filter = True
-    window_size = 5
-    action_buffer = collections.deque(maxlen=window_size)
-
-    # ckpt_name = "model/star/Track_star.pt"
-    ckpt_name = "model/star/Track_filter.pt"
-    base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
-    # base_env = env = FakeNewTrack(cfg, connection=True, swarm=swarm)
-
+    ckpt_name = "model/star/Track_star.pt"
+    # ckpt_name = "model/star/zigzag_star_small.pt"
+    base_env = env = FakeZigZag(cfg, connection=True, swarm=swarm)
+    # ckpt_name = "model/1128_mlp.pt"
+    # base_env = env = FakeHover(cfg, connection=True, swarm=swarm)
     agent_spec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
     state_dict = torch.load(ckpt_name)
@@ -122,7 +117,7 @@ def main(cfg):
         print('start pos', takeoff_env.drone_state[..., :3])
 
         # real policy rollout
-        for track_step in range(1000):
+        for _ in range(1050):
             data = base_env.step(data) 
             data = step_mdp(data)
             
@@ -130,13 +125,6 @@ def main(cfg):
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
-            action_buffer.append(action)
-
-            if use_action_filter:
-                tmp_actions = torch.stack(list(action_buffer), dim=-1)
-                filter_idx = (track_step > window_size)
-                action[filter_idx] = torch.mean(tmp_actions, dim=-1)[filter_idx]
-            
             swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
             cur_time = time.time()
@@ -176,16 +164,6 @@ def main(cfg):
                 takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
         print('land pos', takeoff_env.drone_state[..., :3])
 
-        
-        # debug
-        linear_v = torch.stack(base_env.linear_v).numpy()
-        angular_v = torch.stack(base_env.angular_v).numpy()
-        linear_a = torch.stack(base_env.linear_a).numpy()
-        angular_a = torch.stack(base_env.angular_a).numpy()
-        np.save('linear_v.npy', linear_v)
-        np.save('angular_v.npy', angular_v)
-        np.save('linear_a.npy', linear_a)
-        np.save('angular_a.npy', angular_a)
 
     swarm.end_program()
     

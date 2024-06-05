@@ -1,7 +1,7 @@
 /motion_capture_tracking:
   ros__parameters:
     type: "vrpn" # vicon,optitrack,qualisys,vrpn
-    hostname: "169.254.51.234" # "169.254.51.234" # "169.254.252.45" #"192.168.50.37"  #"169.254.128.169" #"130.149.82.37"
+    hostname: "169.254.203.121" # "169.254.51.234" # "169.254.252.45" #"192.168.50.37"  #"169.254.128.169" #"130.149.82.37"
 
     mode: "libRigidBodyTracker" # one of motionCapture,libRigidBodyTracker
 

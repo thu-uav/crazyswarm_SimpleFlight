@@ -4,7 +4,7 @@ import rclpy
 import torch
 from multiprocessing import Process
 from rclpy.executors import MultiThreadedExecutor
-from .subscriber import TFSubscriber
+from .subscriber import TFSubscriber, vel_Subscriber
 from torchrl.data import CompositeSpec, TensorSpec, DiscreteTensorSpec, BoundedTensorSpec, UnboundedContinuousTensorSpec
 from omni_drones.utils.torch import quaternion_to_euler
 import numpy as np
@@ -44,6 +44,16 @@ class FakeRobot():
         self.n = 1
         self.id = id
 
+    def update_drone_vel(self, log, drone_state):
+        drone_state[0][7] = log.values[0]
+        drone_state[0][8] = log.values[1]
+        drone_state[0][9] = log.values[2]
+
+    def update_drone_omega(self, log, drone_state):
+        drone_state[0][10] = log.values[0]
+        drone_state[0][11] = log.values[1]
+        drone_state[0][12] = log.values[2]
+
 class Swarm():
     def __init__(self, cfg, test=False, mass=1.):
         self.cfg = cfg
@@ -66,6 +76,7 @@ class Swarm():
         self.node = TFSubscriber(
             self.update_drone_state
         )
+        self.cf_nodes = []
         self.last_time = 0.
         
         id = 0
@@ -81,15 +92,29 @@ class Swarm():
             cf.setParam("flightmode.stabModePitch", 0)
             cf.setParam("flightmode.stabModeYaw", 0)
 
+            node = vel_Subscriber(
+                    cf.prefix, 
+                    lambda x: drone.update_drone_vel(x, self.drone_state), 
+                    lambda x: drone.update_drone_omega(x, self.drone_state), 
+                )
+            self.cf_nodes.append(node)
+        
+        self.use_backward_msg = True
+
     def update_drone_state(self, log):
         self.log = log
 
     def get_drone_state(self):
         # update observation
         rclpy.spin_once(self.node)
+        if self.use_backward_msg:
+            for i in range(self.num_cf):
+                rclpy.spin_once(self.cf_nodes[i])
         if self.log is not None:
             last_pos = self.drone_state[...,:3].clone()
             last_quat = self.drone_state[...,3:7].clone()
+            last_linear_v = torch.norm(self.drone_state[...,7:10], dim=-1)
+            last_angular_v = torch.norm(self.drone_state[...,10:13], dim=-1)
             last_rpy = quaternion_to_euler(last_quat)
             if self.num_ball > 0:
                 last_ball = self.ball_state[..., :3].clone()
@@ -117,9 +142,10 @@ class Swarm():
                 self.drone_state[drone_id][6] = tf.transform.rotation.z
                 if self.drone_state[drone_id][3] < 0:
                     self.drone_state[drone_id][..., 3:7] *= -1
-            self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
-            curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
-            self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
+            if not self.use_backward_msg:
+                self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
+                curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
+                self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
             if self.num_ball > 0:
                 self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
             self.last_time = time
