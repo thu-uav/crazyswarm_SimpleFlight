@@ -55,11 +55,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf15:
-  #   enabled: true
-  #   uri: radio://0/78/2M/E7E7E7E70f
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf15:
+    enabled: true
+    uri: radio://0/78/2M/E7E7E7E70F
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
 
   # cf9:

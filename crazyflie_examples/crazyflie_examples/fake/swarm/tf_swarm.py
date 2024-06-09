@@ -99,7 +99,7 @@ class Swarm():
                 )
             self.cf_nodes.append(node)
         
-        self.use_backward_msg = True
+        self.use_backward_msg = False
 
     def update_drone_state(self, log):
         self.log = log
@@ -107,14 +107,14 @@ class Swarm():
     def get_drone_state(self):
         # update observation
         rclpy.spin_once(self.node)
-        if self.use_backward_msg:
-            for i in range(self.num_cf):
-                rclpy.spin_once(self.cf_nodes[i])
+        # if self.use_backward_msg:
+        #     for i in range(self.num_cf):
+        #         rclpy.spin_once(self.cf_nodes[i])
         if self.log is not None:
             last_pos = self.drone_state[...,:3].clone()
             last_quat = self.drone_state[...,3:7].clone()
-            last_linear_v = torch.norm(self.drone_state[...,7:10], dim=-1)
-            last_angular_v = torch.norm(self.drone_state[...,10:13], dim=-1)
+            # last_linear_v = torch.norm(self.drone_state[...,7:10], dim=-1)
+            # last_angular_v = torch.norm(self.drone_state[...,10:13], dim=-1)
             last_rpy = quaternion_to_euler(last_quat)
             if self.num_ball > 0:
                 last_ball = self.ball_state[..., :3].clone()
@@ -142,10 +142,9 @@ class Swarm():
                 self.drone_state[drone_id][6] = tf.transform.rotation.z
                 if self.drone_state[drone_id][3] < 0:
                     self.drone_state[drone_id][..., 3:7] *= -1
-            if not self.use_backward_msg:
-                self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
-                curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
-                self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
+            self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
+            curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
+            self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
             if self.num_ball > 0:
                 self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
             self.last_time = time
