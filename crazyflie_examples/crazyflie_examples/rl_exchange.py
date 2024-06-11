@@ -56,6 +56,7 @@ def main(cfg):
     swarm = Swarm(cfg, test=False)
     # for cf in swarm.cfs:
     #     cf.setParam("pid_rate.yaw_kp", 360)
+    breakpoint()
 
     cmd_fre = 100
     rpy_scale = 180
