@@ -18,13 +18,16 @@ class FakeExchange(FakeEnv):
         # self.target_pos = torch.tensor([[0., 0., 1.]])
         self.max_episode_length = 500
 
-        # self.update_drone_state()
+        self.update_drone_state()
 
-        self.target_pos = torch.concat([torch.tensor([0.5, 0.5, 1.0]), torch.tensor([-0.5, -0.5, 1.0])], dim=1)
+        self.target_pos = torch.stack([torch.tensor([-0.8, -0.8, 1.0]), torch.tensor([0.8, 0.8, 1.0])], dim=0)
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
         observation_dim = 3 + 3 + 4 + 3 + 3 # position, velocity, quaternion, heading, up, relative heading
+
+        # relative pos and vel of the other drone
+        observation_dim += 3
 
         if self.cfg.task.time_encoding:
             self.time_encoding_dim = 4
@@ -32,7 +35,7 @@ class FakeExchange(FakeEnv):
 
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
-                "observation": UnboundedContinuousTensorSpec((1, observation_dim), device=self.device),
+                "observation": UnboundedContinuousTensorSpec((self.num_cf, observation_dim), device=self.device),
             })
         }).expand(self.num_envs).to(self.device)
         self.action_spec = CompositeSpec({
@@ -42,7 +45,7 @@ class FakeExchange(FakeEnv):
         }).expand(self.num_envs).to(self.device)
         self.reward_spec = CompositeSpec({
             "agents": CompositeSpec({
-                "reward": UnboundedContinuousTensorSpec((1, 1))
+                "reward": UnboundedContinuousTensorSpec((self.num_cf, 1))
             })
         }).expand(self.num_envs).to(self.device)
         self.done_spec = CompositeSpec({
@@ -51,7 +54,7 @@ class FakeExchange(FakeEnv):
             "truncated": DiscreteTensorSpec(2, (1,), dtype=torch.bool),
         }).expand(self.num_envs).to(self.device)
         self.agent_spec["drone"] = AgentSpec(
-            "drone", 1,
+            "drone", self.num_cf,
             observation_key=("agents", "observation"),
             action_key=("agents", "action"),
             reward_key=("agents", "reward"),
@@ -63,7 +66,7 @@ class FakeExchange(FakeEnv):
         self.rpos = self.target_pos - self.drone_state[..., :3]
 
         # other drone: relative position
-        drone_pos = self.drone_state[..., :3]
+        drone_pos = self.drone_state[..., :3].unsqueeze(0)
         drone_rpos = vmap(cpos)(drone_pos, drone_pos)
         drone_rpos = vmap(off_diag)(drone_rpos)
 
@@ -73,7 +76,7 @@ class FakeExchange(FakeEnv):
         t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
         obs.append(t)
 
-        obs.append(drone_rpos.squeeze(2))
+        obs.append(drone_rpos.squeeze())
 
         obs = torch.concat(obs, dim=1).unsqueeze(0)
 
@@ -84,7 +87,7 @@ class FakeExchange(FakeEnv):
         }, self.num_envs)
 
     def _compute_reward_and_done(self) -> TensorDictBase:
-        reward = torch.zeros((self.num_envs, 1, 1))
+        reward = torch.zeros((self.num_envs, self.num_cf, 1))
         done = torch.zeros((self.num_envs, 1, 1)).bool()
         return TensorDict(
             {

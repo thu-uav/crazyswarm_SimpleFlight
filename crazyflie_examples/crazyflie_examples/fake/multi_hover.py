@@ -11,11 +11,12 @@ class MultiHover(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.cfg = cfg
-        self.num_cf = 3
+        self.num_cf = 2
         super().__init__(cfg, connection, swarm)
         
         self.target_pos = torch.zeros((self.num_cf, 3))
         self.target_pos[..., 2] = 0.5
+        self.update_drone_state()
 
     def _set_specs(self):
         # drone_state_dim = self.drone.state_spec.shape[-1]
@@ -28,12 +29,11 @@ class MultiHover(FakeEnv):
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
                 "observation": UnboundedContinuousTensorSpec((self.num_cf, observation_dim), device=self.device),
-                # "position": UnboundedContinuousTensorSpec((self.num_cf, 3), device=self.device),
             })
         }).expand(self.num_envs).to(self.device)
         self.action_spec = CompositeSpec({
             "agents": CompositeSpec({
-                "action":  BoundedTensorSpec(-1, 1, 4, device=self.device).unsqueeze(0),
+                "action":  BoundedTensorSpec(-1, self.num_cf, 4, device=self.device).unsqueeze(0),
             })
         }).expand(self.num_envs).to(self.device)
         self.reward_spec = CompositeSpec({
