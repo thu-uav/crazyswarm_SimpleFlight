@@ -71,7 +71,8 @@ def main(cfg):
     takeoff_policy.load_state_dict(takeoff_state_dict)
     
 
-    ckpt_name = "model/exchange/Exchange_smooth.pt"
+    # ckpt_name = "model/exchange/Exchange_smooth.pt"
+    ckpt_name = "model/exchange/Exchange.pt"
     base_env = env = FakeExchange(cfg, connection=True, swarm=swarm)
 
     agent_spec = env.agent_spec["drone"]
