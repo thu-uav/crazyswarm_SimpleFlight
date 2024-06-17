@@ -75,8 +75,8 @@ def main(cfg):
     # window_size = 5
     # action_buffer = collections.deque(maxlen=window_size)
 
-    # ckpt_name = "model/star/Track_star.pt"
-    ckpt_name = "model/track/Track_Tm04_smooth05.pt"
+    # ckpt_name = "model/track/Track_Tm04_smooth05.pt"
+    ckpt_name = "model/track/Track_Tm04_wosmooth_new.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # base_env = env = FakeStar(cfg, connection=True, swarm=swarm)
 
