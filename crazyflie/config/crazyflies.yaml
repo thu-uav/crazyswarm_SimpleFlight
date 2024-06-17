@@ -42,11 +42,11 @@ robots:
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
 
-  cf12:
-    enabled: true
-    uri: radio://1/84/2M/E7E7E7E70C
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf12:
+  #   enabled: true
+  #   uri: radio://1/84/2M/E7E7E7E70C
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf13:
   #   enabled: true
@@ -148,36 +148,39 @@ all:
       # setpoints:
       #   frequency: 100 # Hz
       #   vars: ["ctrltarget.x", "ctrltarget.y", "ctrltarget.z"]
-      # pose:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z",]
-      # quat:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
+
+      # for real2sim
+      pose:
+        frequency: 100 # Hz
+        vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z",]
+      quat:
+        frequency: 100 # Hz
+        vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
       vel:
         frequency: 100 # Hz
         vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
       omega:
         frequency: 100 # Hz
         vars: ["gyro.x", "gyro.y", "gyro.z"]
-      # command_rpy:
-      #   frequency: 100
-      #   vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
-      # real_rate:
-      #   frequency: 100
-      #   vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
-      # target_rate:
-      #   frequency: 100
-      #   vars: ["controller.rollRate", "controller.pitchRate", "controller.yawRate", "controller.cmd_thrust"]
-      # real_rpy:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
-      # target_rpy:
-      #   frequency: 100
-      #   vars: ["controller.roll", "controller.pitch", "controller.yaw"]
-      # motors:
-      #   frequency: 100
-      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
+      command_rpy:
+        frequency: 100
+        vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
+      real_rate:
+        frequency: 100
+        vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
+      target_rate:
+        frequency: 100
+        vars: ["controller.rollRate", "controller.pitchRate", "controller.yawRate", "controller.cmd_thrust"]
+      real_rpy:
+        frequency: 100 # Hz
+        vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      target_rpy:
+        frequency: 100
+        vars: ["controller.roll", "controller.pitch", "controller.yaw"]
+      motors:
+        frequency: 100
+        vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
+
       # rpy:
       #   frequency: 100 # Hz
       #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]

@@ -8,8 +8,8 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-name = 'star'
-data = torch.load('rl_data/'+name+'.pt')
+name = 'figure8'
+data = torch.load('sim2real_data/'+name+'.pt')
 
 x = []
 y = []
@@ -21,7 +21,9 @@ target_z = []
 cnt = 0
 for frame in data:
     cnt += 1
-    if cnt < 300:
+    # if cnt < 300:
+    #     continue
+    if cnt > 750:
         continue
     target_x.append(frame['agents', 'target_position'][0][0].cpu().item())
     target_y.append(frame['agents', 'target_position'][0][1].cpu().item())
@@ -41,4 +43,4 @@ colors = color_map(error)
 ax.scatter(x, y, z, s=5, c=colors)
 ax.set_zlim3d(0.,1.1)
 ax.plot(target_x, target_y, target_z)
-plt.savefig('rl_data/'+name+'_'+str(mean_e) + '.png')
+plt.savefig('sim2real_data/'+name+'_'+str(mean_e) + '.png')

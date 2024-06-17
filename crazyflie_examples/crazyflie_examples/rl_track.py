@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, FakeNewTrack, Swarm, FakeTurn, FakeLine
+from fake import FakeHover, FakeTrack, FakeStar, FakeNewTrack, Swarm, FakeTurn, FakeLine
 import time
 
 from crazyflie_py import Crazyswarm
@@ -75,10 +75,10 @@ def main(cfg):
     # window_size = 5
     # action_buffer = collections.deque(maxlen=window_size)
 
-    ckpt_name = "model/star/Track_star.pt"
-    # ckpt_name = "model/star/smooth_but_bad.pt"
+    # ckpt_name = "model/star/Track_star.pt"
+    ckpt_name = "model/track/Track_Tm04_smooth05.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
-    # base_env = env = FakeNewTrack(cfg, connection=True, swarm=swarm)
+    # base_env = env = FakeStar(cfg, connection=True, swarm=swarm)
 
     agent_spec = env.agent_spec["drone"]
     policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=agent_spec, device=base_env.device)
@@ -129,13 +129,6 @@ def main(cfg):
             data = policy(data, deterministic=True)
             data_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
-
-            # action_buffer.append(action)
-
-            # if use_action_filter:
-            #     tmp_actions = torch.stack(list(action_buffer), dim=-1)
-            #     filter_idx = (track_step > window_size)
-            #     action[filter_idx] = torch.mean(tmp_actions, dim=-1)[filter_idx]
             
             swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
@@ -179,7 +172,7 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/star.pt")
+    torch.save(data_frame, "sim2real_data/figure8.pt")
 
 if __name__ == "__main__":
     main()

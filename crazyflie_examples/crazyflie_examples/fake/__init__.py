@@ -4,6 +4,7 @@ from .exchange import FakeExchange
 from .track import FakeTrack
 from .newtrack import FakeNewTrack
 from .zigzag import FakeZigZag
+from .star import FakeStar
 from .turn import FakeTurn
 from .line import FakeLine
 from .multi_hover import MultiHover

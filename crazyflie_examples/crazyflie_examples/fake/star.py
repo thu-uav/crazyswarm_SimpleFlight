@@ -10,15 +10,16 @@ import collections
 from tensordict.tensordict import TensorDict, TensorDictBase
 from functorch import vmap
 
-class FakeZigZag(FakeEnv):
+class FakeStar(FakeEnv):
     def __init__(self, cfg, connection, swarm):
         self.alpha = 0.8
         self.num_envs = 1
         self.cfg = cfg
         self.future_traj_steps = 4
+        self.future_traj_steps_size = 5
         self.dt = 0.01
         self.num_cf = 1
-        self.max_episode_length = 500
+        self.max_episode_length = 1000
 
         super().__init__(cfg, connection, swarm)
 
@@ -29,8 +30,8 @@ class FakeZigZag(FakeEnv):
         
         # eval
         self.target_times_dist = D.Uniform(
-            torch.tensor(2.0, device=self.device),
-            torch.tensor(2.0, device=self.device)
+            torch.tensor(1.5, device=self.device),
+            torch.tensor(1.5, device=self.device)
         )
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
         self.num_points = 20
@@ -53,7 +54,6 @@ class FakeZigZag(FakeEnv):
             [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6], [-0.5, -0.4], \
             [0.5, 0.0], [-0.5, 0.4], [0.25, -0.6], [0.25, 0.6]]).to(self.device)
         self.target_points[env_ids] = star_points
-
 
         self.target_poses = []
 
@@ -102,7 +102,7 @@ class FakeZigZag(FakeEnv):
 
     def _compute_state_and_obs(self) -> TensorDictBase:
         self.update_drone_state()
-        self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=1)
+        self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=self.future_traj_steps_size)
         # print(self.target_pos[:, 0])
         self.rpos = self.target_pos.cpu() - self.drone_state[..., :3]
         # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:], torch.zeros((self.num_cf, 4))]
@@ -153,10 +153,10 @@ class FakeZigZag(FakeEnv):
 def zigzag(t, target_times, target_points):
     # target_times: [batch, num_points]
     # target_points: [batch, num_points, 2]
-    
+
     target_times = torch.concat([torch.zeros(1, device=target_times.device), torch.cumsum(target_times, dim=0)])
     num_points = target_times.shape[0]
-    
+
     times_expanded = target_times.unsqueeze(0).expand(t.shape[-1], -1)
     t_expanded = t.unsqueeze(-1)
     prev_idx = num_points - (times_expanded > t_expanded).sum(dim=-1) - 1
@@ -176,7 +176,8 @@ def zigzag(t, target_times, target_points):
     x = prev_x + k_x * (t - prev_times) # [batch, future_step]
     y = prev_y + k_y * (t - prev_times)
     z = torch.zeros_like(x)
-    
+    k_z = torch.zeros_like(k_x)
+
     return torch.stack([x, y, z], dim=-1)
 
 def pentagram(t):

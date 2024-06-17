@@ -33,9 +33,13 @@ class FakeTrack(FakeEnv):
             torch.tensor(0., device=self.device)
         )
         self.traj_scale_dist = D.Uniform( # smaller than training
-            torch.tensor([0.5, 0.5, 0.25], device=self.device),
-            torch.tensor([0.5, 0.5, 0.25], device=self.device)
+            torch.tensor([1.0, 1.0, 0.25], device=self.device),
+            torch.tensor([1.0, 1.0, 0.25], device=self.device)
         )
+        # self.traj_scale_dist = D.Uniform( # smaller than training
+        #     torch.tensor([1.2, 1.2, 0.25], device=self.device),
+        #     torch.tensor([1.2, 1.2, 0.25], device=self.device)
+        # )
 
 
         self.traj_w_dist = D.Uniform(
@@ -44,7 +48,7 @@ class FakeTrack(FakeEnv):
         )
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
 
-        self.traj_t0 = 0.0
+        self.traj_t0 = torch.pi / 2.0
         self.traj_c = torch.zeros(self.num_envs, device=self.device)
         self.traj_scale = torch.zeros(self.num_envs, 3, device=self.device)
         self.traj_rot = torch.zeros(self.num_envs, 4, device=self.device)
@@ -111,11 +115,11 @@ class FakeTrack(FakeEnv):
         self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=5)
         # print(self.target_pos[:, 0])
         self.rpos = self.target_pos.cpu() - self.drone_state[..., :3]
-        obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19], torch.zeros((self.num_cf, 4))]
+        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19], torch.zeros((self.num_cf, 4))]
         
-        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19]] # only best model
-        # t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
-        # obs.append(t)
+        obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19]] # only best model
+        t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
+        obs.append(t)
 
         obs = torch.concat(obs, dim=1).unsqueeze(0)
 
@@ -150,10 +154,10 @@ class FakeTrack(FakeEnv):
         t = self.traj_t0 + scale_time(self.traj_w[env_ids].unsqueeze(1) * t * self.dt)
         traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
-        # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
+        target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
         # target_pos = vmap(circle)(t)
         # target_pos = square(t)
-        target_pos = vmap(pentagram)(t)
+        # target_pos = vmap(pentagram)(t)
         target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
 
         return self.origin + target_pos
