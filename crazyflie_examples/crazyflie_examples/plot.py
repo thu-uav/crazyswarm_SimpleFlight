@@ -23,7 +23,7 @@ for frame in data:
     cnt += 1
     # if cnt < 300:
     #     continue
-    if cnt > 750:
+    if cnt > 725:
         continue
     target_x.append(frame['agents', 'target_position'][0][0].cpu().item())
     target_y.append(frame['agents', 'target_position'][0][1].cpu().item())

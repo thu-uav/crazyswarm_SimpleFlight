@@ -1,5 +1,6 @@
 from .hover import FakeHover
 from .goto import FakeGoto
+from .goto_static import FakeGoto_static
 from .exchange import FakeExchange
 from .track import FakeTrack
 from .newtrack import FakeNewTrack

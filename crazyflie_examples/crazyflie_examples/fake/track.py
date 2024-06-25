@@ -33,8 +33,8 @@ class FakeTrack(FakeEnv):
             torch.tensor(0., device=self.device)
         )
         # self.traj_scale_dist = D.Uniform( # smaller than training
-        #     torch.tensor([1.0, 1.0, 0.25], device=self.device),
-        #     torch.tensor([1.0, 1.0, 0.25], device=self.device)
+        #     torch.tensor([0.5, 0.5, 0.25], device=self.device),
+        #     torch.tensor([0.5, 0.5, 0.25], device=self.device)
         # )
         self.traj_scale_dist = D.Uniform( # smaller than training
             torch.tensor([1.2, 1.2, 0.25], device=self.device),
