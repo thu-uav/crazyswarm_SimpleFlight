@@ -87,7 +87,7 @@ def main(cfg):
         takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
 
         # takeoff
-        for timestep in range(300):
+        for timestep in range(1000):
             data = takeoff_env.step(data)
             data = step_mdp(data)
             
@@ -102,26 +102,38 @@ def main(cfg):
             last_time = cur_time
         print('start pos', takeoff_env.drone_state[..., :3])
 
-        # goto
-        takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
-        for timestep in range(2500):
-            data = takeoff_env.step(data)
-            data = step_mdp(data)
+        # # goto
+        # length = 1.5
+        # for timestep in range(int(800 * length)):
+        #     data = takeoff_env.step(data)
+        #     data = step_mdp(data)
             
-            data = takeoff_policy(data, deterministic=True)
-            action = torch.tanh(data[("agents", "action")])
+        #     data = takeoff_policy(data, deterministic=True)
+        #     action = torch.tanh(data[("agents", "action")])
 
-            swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
+        #     swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
-            cur_time = time.time()
-            dt = cur_time - last_time
-            # print('time', dt)
-            last_time = cur_time
-        print('start pos', takeoff_env.drone_state[..., :3])
+        #     cur_time = time.time()
+        #     dt = cur_time - last_time
+        #     # print('time', dt)
+        #     last_time = cur_time
+
+        #     if timestep == int(150 * length):
+        #         takeoff_env.target_pos = torch.tensor([[0., length, 1.0]])
+
+        #     if timestep == int(300 * length):
+        #         takeoff_env.target_pos = torch.tensor([[length, length, 1.0]])
+
+        #     if timestep == int(450 * length):
+        #         takeoff_env.target_pos = torch.tensor([[length, 0., 1.0]])
+
+        #     if timestep == int(600 * length):
+        #         takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
+
 
         # env.save_target_traj("8_1_demo.pt")
         # land
-        for timestep in range(1200):
+        for timestep in range(600):
             data = takeoff_env.step(data)
             data = step_mdp(data)
 
@@ -135,19 +147,19 @@ def main(cfg):
             # print('time', dt)
             last_time = cur_time
 
-            if timestep == 200:
+            if timestep == 100:
                 takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
 
-            if timestep == 400:
+            if timestep == 200:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .8]])
 
-            if timestep == 600:
+            if timestep == 300:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .6]])
 
-            if timestep == 800:
+            if timestep == 400:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .4]])
 
-            if timestep == 1000:
+            if timestep == 500:
                 takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
         print('land pos', takeoff_env.drone_state[..., :3])
 
