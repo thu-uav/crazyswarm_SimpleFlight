@@ -42,11 +42,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf12:
-  #   enabled: true
-  #   uri: radio://1/84/2M/E7E7E7E70C
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf12:
+    enabled: true
+    uri: radio://0/84/2M/E7E7E7E70C
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
   # cf13:
   #   enabled: true
@@ -54,15 +54,15 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  # cf14:
-  #   enabled: true
-  #   uri: radio://1/80/2M/E7E7E7E70e
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
+  cf14:
+    enabled: true
+    uri: radio://1/80/2M/E7E7E7E70e
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
 
   cf15:
     enabled: true
-    uri: radio://1/78/2M/E7E7E7E70F
+    uri: radio://2/78/2M/E7E7E7E70f
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
 
@@ -162,9 +162,9 @@ all:
       omega:
         frequency: 100 # Hz
         vars: ["gyro.x", "gyro.y", "gyro.z"]
-      # command_rpy:
-      #   frequency: 100
-      #   vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
+      command_rpy:
+        frequency: 100
+        vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
       # real_rate:
       #   frequency: 100
       #   vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]

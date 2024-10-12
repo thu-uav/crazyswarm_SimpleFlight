@@ -18,7 +18,7 @@ class FakeTrack(FakeEnv):
         self.future_traj_steps = 4
         self.dt = 0.01
         self.num_cf = 1
-        self.max_episode_length = 1000
+        self.task = 'slow' # 'slow', 'normal', 'fast'
 
         super().__init__(cfg, connection, swarm)
 
@@ -32,15 +32,25 @@ class FakeTrack(FakeEnv):
             torch.tensor(-0., device=self.device),
             torch.tensor(0., device=self.device)
         )
-        # self.traj_scale_dist = D.Uniform( # smaller than training
-        #     torch.tensor([0.5, 0.5, 0.25], device=self.device),
-        #     torch.tensor([0.5, 0.5, 0.25], device=self.device)
-        # )
-        self.traj_scale_dist = D.Uniform( # smaller than training
-            torch.tensor([1.2, 1.2, 0.25], device=self.device),
-            torch.tensor([1.2, 1.2, 0.25], device=self.device)
-        )
 
+        if self.task == 'slow':
+            self.v_scale_dist = D.Uniform(
+                torch.tensor(0.45, device=self.device),
+                torch.tensor(0.45, device=self.device)
+            ) # slow
+            self.max_episode_length = 1500 # slow
+        elif self.task == 'normal':
+            self.max_episode_length = 550
+            self.v_scale_dist = D.Uniform(
+                torch.tensor(1.2, device=self.device),
+                torch.tensor(1.2, device=self.device)
+            ) # normal 
+        else:
+            self.max_episode_length = 1500 # fast
+            self.v_scale_dist = D.Uniform(
+                torch.tensor(1.8, device=self.device),
+                torch.tensor(1.8, device=self.device)
+            ) # fast
 
         self.traj_w_dist = D.Uniform(
             torch.tensor(1.0, device=self.device),
@@ -49,17 +59,20 @@ class FakeTrack(FakeEnv):
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
 
         self.traj_t0 = torch.pi / 2.0
+        # self.traj_t0 = 0.0
         self.traj_c = torch.zeros(self.num_envs, device=self.device)
         self.traj_scale = torch.zeros(self.num_envs, 3, device=self.device)
         self.traj_rot = torch.zeros(self.num_envs, 4, device=self.device)
         self.traj_w = torch.ones(self.num_envs, device=self.device)
         self.target_pos = torch.zeros(self.num_envs, self.future_traj_steps, 3, device=self.device)
+        self.v_scale = torch.ones(self.num_envs, device=self.device)
 
         # reset / initialize
         env_ids = torch.tensor([0])
         self.traj_c[env_ids] = self.traj_c_dist.sample(env_ids.shape)
         self.traj_rot[env_ids] = euler_to_quaternion(self.traj_rpy_dist.sample(env_ids.shape))
-        self.traj_scale[env_ids] = self.traj_scale_dist.sample(env_ids.shape)
+        self.v_scale[env_ids] = self.v_scale_dist.sample(env_ids.shape)
+        # self.traj_scale[env_ids] = self.traj_scale_dist.sample(env_ids.shape)
         # traj_w = self.traj_w_dist.sample(env_ids.shape)
         # self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
         self.traj_w[env_ids] = self.traj_w_dist.sample(env_ids.shape)
@@ -151,14 +164,19 @@ class FakeTrack(FakeEnv):
 
     def _compute_traj(self, steps: int, env_ids=torch.tensor([0]), step_size: float=1.):
         t = self.progress_buf + step_size * torch.arange(steps, device=self.device)
-        t = self.traj_t0 + scale_time(self.traj_w[env_ids].unsqueeze(1) * t * self.dt)
-        traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
+        # t = self.traj_t0 + scale_time(self.traj_w[env_ids].unsqueeze(1) * t * self.dt)
+        t = self.traj_t0 + t * self.dt * torch.ones(self.num_envs, 1, device=self.device)
+        # traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
-        target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
+        # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
+        target_pos = vmap(lemniscate_v)(t, self.v_scale[env_ids].unsqueeze(-1))
+        # print('target_pos', target_pos)
         # target_pos = vmap(circle)(t)
         # target_pos = square(t)
         # target_pos = vmap(pentagram)(t)
-        target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
+        # target_pos = vmap(quat_rotate)(traj_rot, target_pos) * self.traj_scale[env_ids].unsqueeze(1)
+        # target_pos = vmap(quat_rotate)(traj_rot, target_pos)
+
 
         return self.origin + target_pos
 
@@ -172,6 +190,27 @@ def pentagram(t):
     # y = 1.1 * torch.cos(2 * t) - 0.5 * torch.cos(3 * t)
     z = torch.zeros_like(t)
     return torch.stack([x,y,z], dim=-1)
+
+def lemniscate_v(t, k):
+    t = k * t
+    sin_t = torch.sin(t)
+    cos_t = torch.cos(t)
+    sin2p1 = torch.square(sin_t) + 1
+
+    # x = torch.stack([
+    #     cos_t, sin_t * cos_t, sin_t
+    # ], dim=-1) / sin2p1.unsqueeze(-1)
+
+    # x = torch.stack([
+    #     cos_t, sin_t * cos_t, torch.zeros_like(t)
+    # ], dim=-1) / sin2p1.unsqueeze(-1)
+
+    x = torch.stack([
+        cos_t, sin_t * cos_t, torch.zeros_like(t)
+    ], dim=-1)
+
+    return x
+
 
 def lemniscate(t, c):
     sin_t = torch.sin(t)

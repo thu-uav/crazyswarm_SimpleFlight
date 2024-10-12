@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-name = 'figure8'
+name = 'smooth1_drag02_v1_5'
 data = torch.load('sim2real_data/'+name+'.pt')
 
 x = []
@@ -23,7 +23,8 @@ for frame in data:
     cnt += 1
     # if cnt < 300:
     #     continue
-    if cnt > 725:
+    # if cnt > 750: # v = 1.0
+    if cnt > 550: # v = 1.5
         continue
     target_x.append(frame['agents', 'target_position'][0][0].cpu().item())
     target_y.append(frame['agents', 'target_position'][0][1].cpu().item())

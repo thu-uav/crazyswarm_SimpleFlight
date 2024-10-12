@@ -15,3 +15,4 @@ from .swarm.tf_swarm import Swarm
 from .hover_dodge import FakeHoverDodge
 from .formation_ball_forward import FormationBallForward
 from .control.pid import PID
+from .hns import FakeHns

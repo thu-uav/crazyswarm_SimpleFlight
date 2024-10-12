@@ -61,7 +61,7 @@ def main(cfg):
     rpy_scale = 180
 
     # load takeoff checkpoint
-    # takeoff_ckpt = "model/hover/Hover_opt.pt"
+    # takeoff_ckpt = "model/hover/hover_targetrpy0_wosmooth.pt"
     takeoff_ckpt = "model/hover/Hover_rapid.pt"
     # takeoff_ckpt = "model/1128_mlp.pt"
     takeoff_env = FakeGoto(cfg, connection=True, swarm=swarm)
@@ -80,19 +80,22 @@ def main(cfg):
         last_time = time.time()
         data_frame = []
 
+        check_pos = torch.tensor([[0.0, 0.15, 1.0]])
+
         # update observation
         target_pos = takeoff_env.drone_state[..., :3]
         target_pos[..., 2] = 1.0
         # takeoff_env.target_pos = target_pos
-        takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
+        takeoff_env.target_pos = check_pos
 
         # takeoff
-        for timestep in range(1000):
+        for timestep in range(500):
             data = takeoff_env.step(data)
             data = step_mdp(data)
             
             data = takeoff_policy(data, deterministic=True)
             action = torch.tanh(data[("agents", "action")])
+            data_frame.append(data.clone())
 
             swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
 
@@ -100,6 +103,15 @@ def main(cfg):
             dt = cur_time - last_time
             # print('time', dt)
             last_time = cur_time
+            # if timestep == 200:
+            #     takeoff_env.target_pos = torch.tensor([[.5, .5, 1.0]])
+            # if timestep == 400:
+            #     takeoff_env.target_pos = torch.tensor([[.5, -.5, 1.0]])
+            # if timestep == 600:
+            #     takeoff_env.target_pos = torch.tensor([[-.5, -.5, 1.0]])
+            # if timestep == 800:
+            #     takeoff_env.target_pos = torch.tensor([[-.5, .5, 1.0]])
+
         print('start pos', takeoff_env.drone_state[..., :3])
 
         # # goto
@@ -148,25 +160,31 @@ def main(cfg):
             last_time = cur_time
 
             if timestep == 100:
-                takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
+                takeoff_env.target_pos = check_pos
+                takeoff_env.target_pos[..., 2] = 1.0
+                # takeoff_env.target_pos = torch.tensor([[0.0000,   0.0000, 1.0]])
 
             if timestep == 200:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .8]])
+                takeoff_env.target_pos[..., 2] = 0.8
+                # takeoff_env.target_pos = torch.tensor([[0.0000,   0.0000, .8]])
 
             if timestep == 300:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .6]])
+                takeoff_env.target_pos[..., 2] = 0.6
+                # takeoff_env.target_pos = torch.tensor([[0.0000,   0.0000, .6]])
 
             if timestep == 400:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .4]])
+                takeoff_env.target_pos[..., 2] = 0.4
+                # takeoff_env.target_pos = torch.tensor([[0.0000,   0.0000, .4]])
 
             if timestep == 500:
-                takeoff_env.target_pos = torch.tensor([[0., 0., .2]])
+                takeoff_env.target_pos[..., 2] = 0.2
+                # takeoff_env.target_pos = torch.tensor([[0.0000,   0.0000, .2]])
         print('land pos', takeoff_env.drone_state[..., :3])
 
 
     swarm.end_program()
     
-    torch.save(data_frame, "rl_data/star.pt")
+    torch.save(data_frame, "rl_data/goto_debug.pt")
 
 if __name__ == "__main__":
     main()

@@ -67,6 +67,7 @@ class FakeGoto(FakeEnv):
         return TensorDict({
             "agents": {
                 "observation": obs,
+                "real_position": self.drone_state[..., :3].unsqueeze(0)
             },
         }, self.num_envs)
 

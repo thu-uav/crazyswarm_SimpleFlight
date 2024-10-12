@@ -61,9 +61,7 @@ def main(cfg):
     rpy_scale = 180
 
     # load takeoff checkpoint
-    # takeoff_ckpt = "model/hover/Hover_opt.pt"
     takeoff_ckpt = "model/hover/Hover_rapid.pt"
-    # takeoff_ckpt = "model/1128_mlp.pt"
     takeoff_env = MultiHover(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
     takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
