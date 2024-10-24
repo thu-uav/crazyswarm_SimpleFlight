@@ -61,8 +61,8 @@ def main(cfg):
     rpy_scale = 180
 
     # load takeoff checkpoint
-    # takeoff_ckpt = "model/hover/Hover_opt.pt"
-    takeoff_ckpt = "model/hover/Hover_rapid.pt"
+    # takeoff_ckpt = "model/hover/Hover_rapid.pt"
+    takeoff_ckpt = "model/hover/Hover_wotime.pt"
     # takeoff_ckpt = "model/1128_mlp.pt"
     takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
@@ -75,8 +75,8 @@ def main(cfg):
     # window_size = 5
     # action_buffer = collections.deque(maxlen=window_size)
 
-    # ckpt_name = "model/simopt/smooth/Track_simopt_smooth0.pt"
-    ckpt_name = "model/track/slow_lr00001_Tm0025.pt"
+    ckpt_name = "model/wo_time/Track_mixed_norm_smooth1.pt"
+    # ckpt_name = "model/track/fast_lr00005_Tm0025.pt"
     base_env = env = FakeTrack(cfg, connection=True, swarm=swarm)
     # base_env = env = FakeStar(cfg, connection=True, swarm=swarm)
 
@@ -101,15 +101,18 @@ def main(cfg):
         # update observation
         target_pos = takeoff_env.drone_state[..., :3]
         # takeoff_env.tt_pargeos = target_pos
-        takeoff_env.target_pos = torch.tensor([[0.7604, 0.4938, 1.1]]) # slow
+        # takeoff_env.target_pos = torch.tensor([[0.7604, 0.4938, 1.1]]) # slow
         # takeoff_env.target_pos = torch.tensor([[-0.9511, -0.2939, 1.1]]) # fast
+        takeoff_env.target_pos = torch.tensor([[0.0, 0.0, 1.2]])
 
+        takeoff_frame = []
         # takeoff
-        for timestep in range(400):
+        for timestep in range(700):
             data = takeoff_env.step(data)
             data = step_mdp(data)
             
             data = takeoff_policy(data, deterministic=True)
+            takeoff_frame.append(data.clone())
             action = torch.tanh(data[("agents", "action")])
 
             swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
@@ -122,13 +125,9 @@ def main(cfg):
         print('start pos', takeoff_env.drone_state[..., :3])
 
         # real policy rollout
-        # # for track_step in range(750): # v = 1.0
-        # # for track_step in range(550):  # v = 1.5
-        # for track_step in range(2000):  # v = 2.0
-
         for track_step in range(1500): # slow
         # for track_step in range(550):  # normal
-        # for track_step in range(1250):  # fast
+        # for track_step in range(500):  # fast
             data = base_env.step(data) 
             data = step_mdp(data)
             
@@ -186,7 +185,8 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "sim2real_data/debug.pt")
+    torch.save(takeoff_frame, "sim2real_data/takeoff.pt")
+    torch.save(data_frame, "sim2real_data/fast_mixed_norm_smooth_1.pt")
 
 if __name__ == "__main__":
     main()

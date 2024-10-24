@@ -42,11 +42,11 @@ robots:
   #   initial_position: [0.0, 0.0, 0.0]
   #   type: cf21  # see robot_types
 
-  cf12:
-    enabled: true
-    uri: radio://0/84/2M/E7E7E7E70C
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf12:
+  #   enabled: true
+  #   uri: radio://0/84/2M/E7E7E7E70C
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
   # cf13:
   #   enabled: true
@@ -56,15 +56,15 @@ robots:
 
   cf14:
     enabled: true
-    uri: radio://1/80/2M/E7E7E7E70e
+    uri: radio://0/80/2M/E7E7E7E70e
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
 
-  cf15:
-    enabled: true
-    uri: radio://2/78/2M/E7E7E7E70f
-    initial_position: [0.0, 0.0, 0.0]
-    type: cf21  # see robot_types
+  # cf15:
+  #   enabled: true
+  #   uri: radio://0/78/2M/E7E7E7E70f
+  #   initial_position: [0.0, 0.0, 0.0]
+  #   type: cf21  # see robot_types
 
 
   # cf9:
@@ -130,7 +130,7 @@ all:
   # firmware logging for all drones (use robot_types/type_name to set per type, or
   # robots/drone_name to set per drone)
   firmware_logging:
-    enabled: false
+    enabled: true
     # default_topics:
      # remove to disable default topic
       # pose:
@@ -150,21 +150,21 @@ all:
       #   vars: ["ctrltarget.x", "ctrltarget.y", "ctrltarget.z"]
 
       # for real2sim
-      pose:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z",]
-      quat:
-        frequency: 100 # Hz
-        vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
+      # pose:
+      #   frequency: 100 # Hz
+      #   vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z",]
+      # quat:
+      #   frequency: 100 # Hz
+      #   vars: ["stateEstimate.qw", "stateEstimate.qx", "stateEstimate.qy", "stateEstimate.qz",]
       vel:
         frequency: 100 # Hz
         vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
       omega:
         frequency: 100 # Hz
         vars: ["gyro.x", "gyro.y", "gyro.z"]
-      command_rpy:
-        frequency: 100
-        vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
+      # command_rpy:
+      #   frequency: 100
+      #   vars: ["controller.cmd_roll", "controller.cmd_pitch", "controller.cmd_yaw", "controller.cmd_thrust"]
       # real_rate:
       #   frequency: 100
       #   vars: ["controller.r_roll", "controller.r_pitch", "controller.r_yaw", "controller.actuatorThrust"]
@@ -177,19 +177,15 @@ all:
       # target_rpy:
       #   frequency: 100
       #   vars: ["controller.roll", "controller.pitch", "controller.yaw"]
-      motors:
-        frequency: 100
-        vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
-
-      # rpy:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+      # motors:
+      #   frequency: 100
+      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
       # motors_req:
       #   frequency: 100
       #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
-      battery:
-        frequency: 100
-        vars: ['pm.vbat']
+      # battery:
+      #   frequency: 100
+      #   vars: ['pm.vbat']
       # gyro:
       #   frequency: 100
       #   vars: ["gyro.x", "gyro.y", "gyro.z"]

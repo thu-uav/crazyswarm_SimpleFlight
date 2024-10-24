@@ -62,7 +62,7 @@ def main(cfg):
 
     # load takeoff checkpoint
     # takeoff_ckpt = "model/hover/hover_targetrpy0_wosmooth.pt"
-    takeoff_ckpt = "model/hover/Hover_rapid.pt"
+    takeoff_ckpt = "model/hover/Hover_rpos_quat_linearv_rotation_dim19.pt"
     # takeoff_ckpt = "model/1128_mlp.pt"
     takeoff_env = FakeGoto(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
@@ -80,7 +80,7 @@ def main(cfg):
         last_time = time.time()
         data_frame = []
 
-        check_pos = torch.tensor([[0.0, 0.15, 1.0]])
+        check_pos = torch.tensor([[0.0, 0.0, 1.0]])
 
         # update observation
         target_pos = takeoff_env.drone_state[..., :3]
@@ -89,28 +89,36 @@ def main(cfg):
         takeoff_env.target_pos = check_pos
 
         # takeoff
+        sum_infer = 0
+        sum_all = 0
+        sum_comm1 = 0
+        sum_comm2 = 0
+        all_start_time = time.time()
         for timestep in range(500):
+            comm1_start = time.time()
             data = takeoff_env.step(data)
             data = step_mdp(data)
+            comm1_end = time.time()
+            sum_comm1 += (comm1_end - comm1_start)
             
+            infer_start = time.time()
             data = takeoff_policy(data, deterministic=True)
             action = torch.tanh(data[("agents", "action")])
             data_frame.append(data.clone())
+            infer_end = time.time()
+            sum_infer += (infer_end - infer_start)
 
+            comm2_start = time.time()
             swarm.act(action, rpy_scale=rpy_scale, rate=cmd_fre)
+            comm2_end = time.time()
+            sum_comm2 += (comm2_end - comm2_start)
 
-            cur_time = time.time()
-            dt = cur_time - last_time
-            # print('time', dt)
-            last_time = cur_time
-            # if timestep == 200:
-            #     takeoff_env.target_pos = torch.tensor([[.5, .5, 1.0]])
-            # if timestep == 400:
-            #     takeoff_env.target_pos = torch.tensor([[.5, -.5, 1.0]])
-            # if timestep == 600:
-            #     takeoff_env.target_pos = torch.tensor([[-.5, -.5, 1.0]])
-            # if timestep == 800:
-            #     takeoff_env.target_pos = torch.tensor([[-.5, .5, 1.0]])
+        all_end_time = time.time()
+        sum_all = all_end_time - all_start_time
+        print('all_sum_time', sum_all)
+        print('infer_sum_time', sum_infer)
+        print('comm1_sum_time', sum_comm1)
+        print('comm2_sum_time', sum_comm2)
 
         print('start pos', takeoff_env.drone_state[..., :3])
 

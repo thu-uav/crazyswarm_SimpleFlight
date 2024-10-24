@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot()
 
 import torch
-name = 'debug'
+name = 'fast_withtime_norm_smoothness'
 data = torch.load('sim2real_data/'+name+'.pt')
 
 x = []
@@ -23,9 +23,9 @@ for frame in data:
     cnt += 1
     # if cnt < 300:
     #     continue
-    # if cnt > 370: # fast
+    if cnt > 450: # fast
     # if cnt > 500 or cnt < 110: # long fast
-    if cnt > 1400: # slow
+    # if cnt > 1400: # slow
         continue
     target_x.append(frame['agents', 'target_position'][0][0].cpu().item())
     target_y.append(frame['agents', 'target_position'][0][1].cpu().item())

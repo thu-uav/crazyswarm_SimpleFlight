@@ -8,7 +8,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 import torch
-name = 'smooth1_drag02_v1_5'
+name = 'fast_withtime_norm_smoothness'
 data = torch.load('sim2real_data/'+name+'.pt')
 
 x = []

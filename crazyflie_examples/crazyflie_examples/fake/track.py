@@ -15,10 +15,14 @@ class FakeTrack(FakeEnv):
         self.alpha = 0.8
         self.num_envs = 1
         self.cfg = cfg
-        self.future_traj_steps = 4
+        self.future_traj_steps = 10
         self.dt = 0.01
         self.num_cf = 1
         self.task = 'slow' # 'slow', 'normal', 'fast'
+        self.use_time_encoding = False
+        self.use_random_init = False
+        # self.use_action_history = True
+        # self.action_history_step = 5
 
         super().__init__(cfg, connection, swarm)
 
@@ -34,22 +38,19 @@ class FakeTrack(FakeEnv):
         )
 
         if self.task == 'slow':
-            self.v_scale_dist = D.Uniform(
-                torch.tensor(0.45, device=self.device),
-                torch.tensor(0.45, device=self.device)
+            self.T_scale_dist = D.Uniform(
+                torch.tensor(15.0, device=self.device),
+                torch.tensor(15.0, device=self.device)
             ) # slow
-            self.max_episode_length = 1500 # slow
         elif self.task == 'normal':
-            self.max_episode_length = 550
-            self.v_scale_dist = D.Uniform(
-                torch.tensor(1.2, device=self.device),
-                torch.tensor(1.2, device=self.device)
+            self.T_scale_dist = D.Uniform(
+                torch.tensor(5.5, device=self.device),
+                torch.tensor(5.5, device=self.device)
             ) # normal 
         else:
-            self.max_episode_length = 1500 # fast
-            self.v_scale_dist = D.Uniform(
-                torch.tensor(1.8, device=self.device),
-                torch.tensor(1.8, device=self.device)
+            self.T_scale_dist = D.Uniform(
+                torch.tensor(3.5, device=self.device),
+                torch.tensor(3.5, device=self.device)
             ) # fast
 
         self.traj_w_dist = D.Uniform(
@@ -58,36 +59,49 @@ class FakeTrack(FakeEnv):
         )
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
 
-        self.traj_t0 = torch.pi / 2.0
-        # self.traj_t0 = 0.0
+        self.traj_t0 = torch.ones(self.num_envs, device=self.device)
         self.traj_c = torch.zeros(self.num_envs, device=self.device)
         self.traj_scale = torch.zeros(self.num_envs, 3, device=self.device)
         self.traj_rot = torch.zeros(self.num_envs, 4, device=self.device)
         self.traj_w = torch.ones(self.num_envs, device=self.device)
         self.target_pos = torch.zeros(self.num_envs, self.future_traj_steps, 3, device=self.device)
-        self.v_scale = torch.ones(self.num_envs, device=self.device)
+        self.T_scale = torch.ones(self.num_envs, device=self.device)
 
         # reset / initialize
         env_ids = torch.tensor([0])
         self.traj_c[env_ids] = self.traj_c_dist.sample(env_ids.shape)
         self.traj_rot[env_ids] = euler_to_quaternion(self.traj_rpy_dist.sample(env_ids.shape))
-        self.v_scale[env_ids] = self.v_scale_dist.sample(env_ids.shape)
-        # self.traj_scale[env_ids] = self.traj_scale_dist.sample(env_ids.shape)
-        # traj_w = self.traj_w_dist.sample(env_ids.shape)
-        # self.traj_w[env_ids] = torch.randn_like(traj_w).sign() * traj_w
+        self.T_scale[env_ids] = self.T_scale_dist.sample(env_ids.shape)
         self.traj_w[env_ids] = self.traj_w_dist.sample(env_ids.shape)
+        if self.use_random_init:
+            self.traj_t0[env_ids] = torch.rand(env_ids.shape).to(self.device) * self.T_scale[env_ids] # 0 ~ T
+        else:
+            # self.traj_t0[env_ids] = torch.pi / 2
+            self.traj_t0[env_ids] = 0.25 * self.T_scale[env_ids]
+
+        # # add init_action to self.action_history_buffer
+        # for _ in range(self.action_history):
+        #     self.action_history_buffer.append(self.prev_actions) # add all prev_actions, not len(env_ids)
 
         self.target_poses = []
 
     def _set_specs(self):
-        # drone_state_dim = self.drone.state_spec.shape[-1]
-        observation_dim = 3 + 3 + 4 + 3 + 3 # only best model
-        # observation_dim = 3 + 4 + 6 # position, velocity, quaternion
-        observation_dim += 3 * (self.future_traj_steps-1)
+        # old version
+        # observation_dim = 3 + 3 + 4 + 3 + 3 # only best model
+        # observation_dim += 3 * (self.future_traj_steps-1)
 
-        if self.cfg.task.time_encoding:
+        drone_state_dim = 3 + 3 + 3 + 3 + 3 
+        observation_dim = drone_state_dim + 3 * self.future_traj_steps
+
+        if self.use_time_encoding:
             self.time_encoding_dim = 4
             observation_dim += self.time_encoding_dim
+
+        # # action history
+        # self.action_history = self.action_history_step if self.use_action_history else 0
+        # self.action_history_buffer = collections.deque(maxlen=self.action_history)
+        # if self.action_history > 0:
+        #     observation_dim += self.action_history * 4
 
         self.observation_spec = CompositeSpec({
             "agents": CompositeSpec({
@@ -128,13 +142,26 @@ class FakeTrack(FakeEnv):
         self.target_pos[:] = self._compute_traj(self.future_traj_steps, step_size=5)
         # print(self.target_pos[:, 0])
         self.rpos = self.target_pos.cpu() - self.drone_state[..., :3]
-        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19], torch.zeros((self.num_cf, 4))]
         
-        obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19]] # only best model
-        t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))
-        obs.append(t)
+        # obs = [self.rpos.flatten(1), self.drone_state[..., 3:10], self.drone_state[..., 13:19]] # old version
+        obs = [
+            self.rpos.flatten(1),
+            self.drone_state[..., 7:10], # linear vel (wolrd frame)
+            self.drone_state[..., 16:19], # body rate (body frame)
+            self.drone_state[..., 19:28], # rotation matrix
+        ]
+
+        # if self.use_time_encoding:
+        #     t = (self.progress_buf % self.max_episode_length) / self.max_episode_length * torch.ones((self.num_cf, 4))
+        #     obs.append(t)
 
         obs = torch.concat(obs, dim=1).unsqueeze(0)
+
+        # # add action history to actor
+        # if self.action_history > 0:
+        #     self.action_history_buffer.append(self.prev_actions)
+        #     all_action_history = torch.concat(list(self.action_history_buffer), dim=-1)
+        #     obs = torch.cat([obs, all_action_history], dim=-1)
 
         return TensorDict({
             "agents": {
@@ -169,7 +196,7 @@ class FakeTrack(FakeEnv):
         # traj_rot = self.traj_rot[env_ids].unsqueeze(1).expand(-1, t.shape[1], 4)
         
         # target_pos = vmap(lemniscate)(t, self.traj_c[env_ids])
-        target_pos = vmap(lemniscate_v)(t, self.v_scale[env_ids].unsqueeze(-1))
+        target_pos = vmap(lemniscate_v)(t, self.T_scale[env_ids].unsqueeze(-1))
         # print('target_pos', target_pos)
         # target_pos = vmap(circle)(t)
         # target_pos = square(t)
@@ -191,26 +218,15 @@ def pentagram(t):
     z = torch.zeros_like(t)
     return torch.stack([x,y,z], dim=-1)
 
-def lemniscate_v(t, k):
-    t = k * t
-    sin_t = torch.sin(t)
-    cos_t = torch.cos(t)
-    sin2p1 = torch.square(sin_t) + 1
-
-    # x = torch.stack([
-    #     cos_t, sin_t * cos_t, sin_t
-    # ], dim=-1) / sin2p1.unsqueeze(-1)
-
-    # x = torch.stack([
-    #     cos_t, sin_t * cos_t, torch.zeros_like(t)
-    # ], dim=-1) / sin2p1.unsqueeze(-1)
+def lemniscate_v(t, T):
+    sin_t = torch.sin(2 * torch.pi * t / T)
+    cos_t = torch.cos(2 * torch.pi * t / T)
 
     x = torch.stack([
         cos_t, sin_t * cos_t, torch.zeros_like(t)
     ], dim=-1)
 
     return x
-
 
 def lemniscate(t, c):
     sin_t = torch.sin(t)

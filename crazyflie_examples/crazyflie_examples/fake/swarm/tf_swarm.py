@@ -49,10 +49,10 @@ class FakeRobot():
         drone_state[0][8] = log.values[1]
         drone_state[0][9] = log.values[2]
 
-    def update_drone_omega(self, log, drone_state):
-        drone_state[0][10] = log.values[0]
-        drone_state[0][11] = log.values[1]
-        drone_state[0][12] = log.values[2]
+    def update_drone_omega(self, log, drone_state): # deg -> rad
+        drone_state[0][16] = log.values[0] / 180 * torch.pi
+        drone_state[0][17] = - log.values[1] / 180 * torch.pi
+        drone_state[0][18] = log.values[2] / 180 * torch.pi
 
 class Swarm():
     def __init__(self, cfg, test=False, mass=1.):
@@ -66,7 +66,8 @@ class Swarm():
         self.timeHelper = self.swarm.timeHelper
         self.cfs = self.swarm.allcfs.crazyflies
         self.num_cf = len(self.cfs)
-        self.drone_state = torch.zeros((self.num_cf, 19)) # position, quaternion, velocity, omega, heading, up
+        self.drone_state = torch.zeros((self.num_cf, 28)) # position, quat, velocity(world)[7:13], velocity(body)[13:19], heading, lateral, up
+        # self.drone_state = torch.zeros((self.num_cf, 19)) # position, quat, velocity(world), heading, up
         self.num_ball = cfg.task.ball_num
         self.ball_state = torch.zeros((self.num_ball, 6)) # position, velocity
         self.num_static_obstacle = cfg.task.static_obs_num
@@ -99,7 +100,7 @@ class Swarm():
                 )
             self.cf_nodes.append(node)
         
-        self.use_backward_msg = False
+        self.use_backward_msg = True
 
     def update_drone_state(self, log):
         self.log = log
@@ -107,29 +108,29 @@ class Swarm():
     def get_drone_state(self):
         # update observation
         rclpy.spin_once(self.node)
-        # if self.use_backward_msg:
-        #     for i in range(self.num_cf):
-        #         rclpy.spin_once(self.cf_nodes[i])
+        if self.use_backward_msg:
+            for i in range(self.num_cf):
+                rclpy.spin_once(self.cf_nodes[i])
         if self.log is not None:
             last_pos = self.drone_state[...,:3].clone()
             last_quat = self.drone_state[...,3:7].clone()
             # last_linear_v = torch.norm(self.drone_state[...,7:10], dim=-1)
             # last_angular_v = torch.norm(self.drone_state[...,10:13], dim=-1)
             last_rpy = quaternion_to_euler(last_quat)
-            if self.num_ball > 0:
-                last_ball = self.ball_state[..., :3].clone()
+            # if self.num_ball > 0:
+            #     last_ball = self.ball_state[..., :3].clone()
             for tf in self.log.transforms:
                 time = tf.header.stamp.sec + tf.header.stamp.nanosec/1e9
-                if tf.child_frame_id == "ball":
-                    ball_id = int(tf.child_frame_id[4:])
-                    self.ball_state[ball_id][0] = tf.transform.translation.x
-                    self.ball_state[ball_id][1] = tf.transform.translation.y
-                    self.ball_state[ball_id][2] = tf.transform.translation.z
-                if tf.child_frame_id == "obs": 
-                    obs_id = int(tf.child_frame_id[3:])
-                    self.obstacle_state[obs_id][0] = tf.transform.translation.x
-                    self.obstacle_state[obs_id][1] = tf.transform.translation.y
-                    self.obstacle_state[obs_id][2] = 1.5 #tf.transform.translation.z
+                # if tf.child_frame_id == "ball":
+                #     ball_id = int(tf.child_frame_id[4:])
+                #     self.ball_state[ball_id][0] = tf.transform.translation.x
+                #     self.ball_state[ball_id][1] = tf.transform.translation.y
+                #     self.ball_state[ball_id][2] = tf.transform.translation.z
+                # if tf.child_frame_id == "obs": 
+                #     obs_id = int(tf.child_frame_id[3:])
+                #     self.obstacle_state[obs_id][0] = tf.transform.translation.x
+                #     self.obstacle_state[obs_id][1] = tf.transform.translation.y
+                #     self.obstacle_state[obs_id][2] = 1.5 #tf.transform.translation.z
                 if tf.child_frame_id not in self.cf_map.keys():
                     continue
                 drone_id = self.cf_map[tf.child_frame_id]
@@ -145,8 +146,8 @@ class Swarm():
             self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
             curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
             self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
-            if self.num_ball > 0:
-                self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
+            # if self.num_ball > 0:
+            #     self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
             self.last_time = time
 
         return self.drone_state.clone(), self.ball_state.clone(), self.obstacle_state.clone()
@@ -160,7 +161,6 @@ class Swarm():
             thrust = (action[3] + 1) / 2
             thrust = float(max(0, min(0.9, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, -action[2] * rpy_scale, thrust*2**16)
-            # cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, 0.0, thrust*2**16)
         self.timeHelper.sleepForRate(rate)
     
     def act_control(self, all_action, rate=100):
