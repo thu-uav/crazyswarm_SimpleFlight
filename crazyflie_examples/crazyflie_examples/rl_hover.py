@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, FakeStar, FakeNewTrack, Swarm, FakeTurn, FakeLine
+from fake import FakeHover, FakeTrack, FakeNewTrack, Swarm, FakeTurn, FakeLine
 import time
 
 from crazyflie_py import Crazyswarm
@@ -61,8 +61,8 @@ def main(cfg):
     rpy_scale = 180
 
     # load takeoff checkpoint
-    # takeoff_ckpt = "model/hover/Hover.pt"
-    takeoff_ckpt = "model/hover/Hover_rpos_quat_linearv_rotation_wotime.pt"
+    takeoff_ckpt = "model/hover/Hover.pt"
+    # takeoff_ckpt = "model/hover/Hover_wotime.pt"
     takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
     takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
@@ -83,12 +83,12 @@ def main(cfg):
 
         # update observation
         target_pos = takeoff_env.drone_state[..., :3]
-        takeoff_env.target_pos = torch.tensor([[0.0, 0.0, 1.0]])
+        takeoff_env.target_pos = torch.tensor([[1.0, 1.0, 1.0]])
 
         takeoff_frame = []
         action_frame = []
         # takeoff
-        for timestep in range(700):
+        for timestep in range(2000):
             data = takeoff_env.step(data)
             data = step_mdp(data)
             

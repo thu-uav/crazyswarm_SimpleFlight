@@ -19,7 +19,7 @@ class FakeHover(FakeEnv):
 
     def _set_specs(self):
         observation_dim = 19 # position, quat, linear velocity, heading, lateral, up
-        self.time_encoding = False
+        self.time_encoding = True
 
         if self.time_encoding:
             self.time_encoding_dim = 4
@@ -58,7 +58,7 @@ class FakeHover(FakeEnv):
         self.rpos = self.target_pos - self.drone_state[..., :3]
         # hover_rapid
         if self.time_encoding:
-            obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 19:28], torch.ones((self.num_cf, 4))]
+            obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 19:28], torch.zeros((self.num_cf, 4))]
 
             # obs = [self.rpos, self.drone_state[..., 3:10], self.drone_state[..., 19:28]]
             # t = (self.progress_buf / self.max_episode_length) * torch.ones((self.num_cf, 4))

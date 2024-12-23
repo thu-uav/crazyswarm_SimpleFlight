@@ -100,7 +100,7 @@ class Swarm():
                 )
             self.cf_nodes.append(node)
         
-        self.use_backward_msg = True
+        self.use_backward_msg = False # if use msg from cf
 
     def update_drone_state(self, log):
         self.log = log
@@ -152,14 +152,14 @@ class Swarm():
 
         return self.drone_state.clone(), self.ball_state.clone(), self.obstacle_state.clone()
     
-    def act(self, all_action, rpy_scale=180, rate=100):
+    def act(self, all_action, rpy_scale=180, rate=100, min_thrust=0.0, max_thrust=0.9):
         if self.test:
             return
         for id in range(self.num_cf):
             action = all_action[0][id].cpu().numpy().astype(float)
             cf = self.cfs[id]
             thrust = (action[3] + 1) / 2
-            thrust = float(max(0, min(0.9, thrust)))
+            thrust = float(max(min_thrust, min(max_thrust, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, -action[2] * rpy_scale, thrust*2**16)
         self.timeHelper.sleepForRate(rate)
     

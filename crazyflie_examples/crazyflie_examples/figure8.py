@@ -22,10 +22,6 @@ def main():
     TIMESCALE = 1.0
     for i in range(TRIALS):
         for cf in allcfs.crazyflies:
-            # set params
-            # cf.setParam("pid_rate.yaw_kp", 240)
-            # cf.setParam("pid_rate.yaw_kp", 480)
-            # timeHelper.sleep(1.0)
 
             cf.uploadTrajectory(0, 0, traj1)
             cf.takeoff(targetHeight=1.0, duration=2.0)
