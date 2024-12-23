@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, FakeDATT, FakeNewTrack, Swarm, FakeTurn, FakeLine
+from fake import FakeHover, FakeTrack, FakeDATT, Swarm
 import time
 
 from crazyflie_py import Crazyswarm

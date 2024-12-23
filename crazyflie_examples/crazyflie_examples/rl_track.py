@@ -33,7 +33,7 @@ from torchrl.envs.transforms import (
 )
 
 from tqdm import tqdm
-from fake import FakeHover, FakeTrack, FakeNewTrack, Swarm, FakeTurn, FakeLine
+from fake import FakeHover, FakeTrack, Swarm
 import time
 
 from crazyflie_py import Crazyswarm
@@ -53,7 +53,6 @@ def main(cfg):
     }
 
     swarm = Swarm(cfg, test=False)
-
 
     cmd_fre = 100
     rpy_scale = 180
@@ -176,7 +175,6 @@ def main(cfg):
         print('land pos', takeoff_env.drone_state[..., :3])
 
     swarm.end_program()
-    
     # torch.save(data_frame, "sim2real_data/datt/star_slow.pt")
 
 if __name__ == "__main__":

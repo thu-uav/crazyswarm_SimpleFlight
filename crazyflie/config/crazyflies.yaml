@@ -6,112 +6,6 @@ robots:
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
 
-  # cf3:
-  #   enabled: true
-  #   uri: radio://0/82/2M/E7E7E7E703
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf4:
-  #   enabled: true
-  #   uri: radio://0/90/2M/E7E7E7E704
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf1:
-  #   enabled: true
-  #   uri: radio://0/85/2M/E7E7E7E701
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf5:
-  #   enabled: true
-  #   uri: radio://2/80/2M/E7E7E7E705
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf10:
-  #   enabled: true
-  #   uri: radio://1/78/2M/E7E7E7E70a
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf11:
-  #   enabled: true
-  #   uri: radio://0/82/2M/E7E7E7E70B
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf12:
-  #   enabled: true
-  #   uri: radio://0/84/2M/E7E7E7E70C
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf13:
-  #   enabled: true
-  #   uri: radio://0/88/2M/E7E7E7E70D
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf14:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E70e
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf15:
-  #   enabled: true
-  #   uri: radio://0/78/2M/E7E7E7E70f
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-
-  # cf9:
-  #   enabled: true
-  #   uri: radio://1/95/2M/E7E7E7E709
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-
-  # cf2:
-  #   enabled: true
-  #   uri: radio://1/85/2M/E7E7E7E702
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf9:
-  #   enabled: true
-  #   uri: radio://0/95/2M/E7E7E7E709
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf7:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E707
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf3:
-  #   enabled: true
-  #   uri: radio://0/80/2M/E7E7E7E703
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-  # cf8:
-  #   enabled: true
-  #   uri: radio://1/80/2M/E7E7E7E708
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-  
-  # cf6:
-  #   enabled: true
-  #   uri: radio://2/85/2M/E7E7E7E706
-  #   initial_position: [0.0, 0.0, 0.0]
-  #   type: cf21  # see robot_types
-
-
-
 # Definition of the various robot types
 robot_types:
   cf21:
@@ -136,20 +30,6 @@ all:
       # pose:
       #   frequency: 100 # Hz
     custom_topics:
-      # NN_thrust:
-      #   frequency: 100 # Hz
-      #   vars: ["ctrlNN.out0", "ctrlNN.out1", "ctrlNN.out2", "ctrlNN.out3"]
-      # NN_input_pos:
-      #   frequency: 100 # Hz
-      #   vars: ["ctrlNN.in0", "ctrlNN.in1", "ctrlNN.in2"]
-      # NN_input_vel:
-      #   frequency: 100 # Hz
-      #   vars: ["ctrlNN.in3", "ctrlNN.in4", "ctrlNN.in5"]
-      # setpoints:
-      #   frequency: 100 # Hz
-      #   vars: ["ctrltarget.x", "ctrltarget.y", "ctrltarget.z"]
-
-      # for real2sim
       # pose:
       #   frequency: 100 # Hz
       #   vars: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z",]
@@ -171,51 +51,7 @@ all:
       target_rate:
         frequency: 100
         vars: ["controller.rollRate", "controller.pitchRate", "controller.yawRate", "controller.cmd_thrust"]
-      # real_rpy:
-      #   frequency: 100 # Hz
-      #   vars: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
-      # target_rpy:
-      #   frequency: 100
-      #   vars: ["controller.roll", "controller.pitch", "controller.yaw"]
-      # motors:
-      #   frequency: 100
-      #   vars: ['motor.m1', 'motor.m2', 'motor.m3', 'motor.m4']
-      # motors_req:
-      #   frequency: 100
-      #   vars: ['motor.m1req', 'motor.m2req', 'motor.m3req', 'motor.m4req']
-      # battery:
-      #   frequency: 100
-      #   vars: ['pm.vbat']
-      # gyro:
-      #   frequency: 100
-      #   vars: ["gyro.x", "gyro.y", "gyro.z"]
-      # pid_roll:
-      #   frequency: 100
-      #   vars: ["pid_rate.roll_outP", "pid_rate.roll_outI", "pid_rate.roll_outD", "pid_rate.roll_outFF"]
-      # pid_pitch:
-      #   frequency: 100
-      #   vars: ["pid_rate.pitch_outP", "pid_rate.pitch_outI", "pid_rate.pitch_outD", "pid_rate.pitch_outFF"]
-      # target_v:
-      #   frequency: 100
-      #   vars: ["posCtl.targetVX", "posCtl.targetVY", "posCtl.targetVZ"]
-      # target_pos:
-      #   frequency: 100
-      #   vars: ["posCtl.targetX", "posCtl.targetY", "posCtl.targetZ"]
-      # real_pos:
-      #   frequency: 100
-      #   vars: ["posCtl.bodyX", "posCtl.bodyY"]
-      # real_v:
-      #   frequency: 100
-      #   vars: ["posCtl.bodyVX", "posCtl.bodyVY"]
-      # pid_x:
-      #   frequency: 100
-      #   vars: ["posCtl.Xp", "posCtl.Xi", "posCtl.Xd", "posCtl.Xff"]
-      # pid_y:
-      #   frequency: 100
-      #   vars: ["posCtl.Yp", "posCtl.Yi", "posCtl.Yd", "posCtl.Yff"]
-      # stabilizer:
-      #   frequency: 100
-      #   vars: ["stabilizer.roll", "stabilizer.pitch", "stabilizer.yaw", "stabilizer.thrust"]
+
   # firmware parameters for all drones (use robot_types/type_name to set per type, or
   # robots/drone_name to set per drone)
   firmware_params:

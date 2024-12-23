@@ -1,18 +1,30 @@
-[![ROS 2](https://github.com/IMRCLab/crazyswarm2/actions/workflows/ci-ros2.yml/badge.svg)](https://github.com/IMRCLab/crazyswarm2/actions/workflows/ci-ros2.yml)
+# Hardware Implementation of SimpleFlighe
 
-# Crazyswarm2
+## Training code: https://github.com/thu-uav/SimpleFlight
+
+## Installation
 A ROS 2-based stack for Bitcraze Crazyflie multirotor robots.
 
 The documentation is available here: https://imrclab.github.io/crazyswarm2/.
 
-## Troubleshooting
-Please start a [Discussion](https://github.com/IMRCLab/crazyswarm2/discussions) for...
+## Crazyflie parameters
+The cf[id] is the id you set for the crazyflie in the config file that is used in the launch file, i.e., crazyflies.yaml. Please set the correct cf[id] and uri for your flight.
 
-- Getting Crazyswarm2 to work with your hardware setup.
-- Advice on how to use it to achieve your goals.
-- Rough ideas for a new feature.
+## Deployment
+We provide a stable RL policy for hovering at arbitrary points ``hover.pt`` and a policy for tracking trajectories ``deploy.pt``. You can also train your own RL policy by our training code.
 
-Please open an [Issue](https://github.com/IMRCLab/crazyswarm2/issues) if you believe that fixing your problem will involve a **change in the Crazyswarm2 source code**, rather than your own configuration files. For example...
+In terminal 1, connect with the crazyflie
+```
+ros2 launch crazyflie launch.py backend:=cflib
+```
 
-- Bug reports.
-- New feature proposals with details.
+In terminal 2, run the flight script.
+For Figure-eight trajectories with different speeds,
+```
+python rl_track.py
+```
+
+For Polynomial, Pentagram and Zigzag trajectories,
+```
+python rl_arbitrary_track.py
+```

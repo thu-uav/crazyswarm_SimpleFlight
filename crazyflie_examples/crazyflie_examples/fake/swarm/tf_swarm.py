@@ -114,23 +114,9 @@ class Swarm():
         if self.log is not None:
             last_pos = self.drone_state[...,:3].clone()
             last_quat = self.drone_state[...,3:7].clone()
-            # last_linear_v = torch.norm(self.drone_state[...,7:10], dim=-1)
-            # last_angular_v = torch.norm(self.drone_state[...,10:13], dim=-1)
             last_rpy = quaternion_to_euler(last_quat)
-            # if self.num_ball > 0:
-            #     last_ball = self.ball_state[..., :3].clone()
             for tf in self.log.transforms:
                 time = tf.header.stamp.sec + tf.header.stamp.nanosec/1e9
-                # if tf.child_frame_id == "ball":
-                #     ball_id = int(tf.child_frame_id[4:])
-                #     self.ball_state[ball_id][0] = tf.transform.translation.x
-                #     self.ball_state[ball_id][1] = tf.transform.translation.y
-                #     self.ball_state[ball_id][2] = tf.transform.translation.z
-                # if tf.child_frame_id == "obs": 
-                #     obs_id = int(tf.child_frame_id[3:])
-                #     self.obstacle_state[obs_id][0] = tf.transform.translation.x
-                #     self.obstacle_state[obs_id][1] = tf.transform.translation.y
-                #     self.obstacle_state[obs_id][2] = 1.5 #tf.transform.translation.z
                 if tf.child_frame_id not in self.cf_map.keys():
                     continue
                 drone_id = self.cf_map[tf.child_frame_id]
@@ -146,8 +132,6 @@ class Swarm():
             self.drone_state[..., 7:10] = (self.drone_state[..., :3] - last_pos) / (time - self.last_time)
             curr_rpy = quaternion_to_euler(self.drone_state[..., 3:7])
             self.drone_state[..., 10:13] = (curr_rpy - last_rpy) / (time - self.last_time)
-            # if self.num_ball > 0:
-            #     self.ball_state[..., 3:6] = (self.ball_state[..., :3] - last_ball) / (time - self.last_time)
             self.last_time = time
 
         return self.drone_state.clone(), self.ball_state.clone(), self.obstacle_state.clone()
@@ -161,44 +145,6 @@ class Swarm():
             thrust = (action[3] + 1) / 2
             thrust = float(max(min_thrust, min(max_thrust, thrust)))
             cf.cmdVel(action[0] * rpy_scale, -action[1] * rpy_scale, -action[2] * rpy_scale, thrust*2**16)
-        self.timeHelper.sleepForRate(rate)
-    
-    def act_control(self, all_action, rate=100):
-        if self.test:
-            return
-        for id in range(self.num_cf):
-            action = all_action[0][id].cpu().numpy().astype(float)
-            cf = self.cfs[id]
-            roll_rate = float(np.clip(action[0] * 180. / torch.pi, -200., 200.))
-            pitch_rate = float(np.clip(action[1] * 180. / torch.pi, -200., 200.))
-            yaw_rate = float(np.clip(action[2] * 180. / torch.pi, -100., 100.))
-            thrust = (action[3] + 1) / 2
-            thrust = float(max(0, min(0.9, thrust)))
-            cf.cmdVel(roll_rate, -pitch_rate, yaw_rate, thrust*2**16)
-        self.timeHelper.sleepForRate(rate)
-
-    # # give cmd and act
-    # def cmd_act(self, action, rate=50):
-    #     if self.test:
-    #         return
-    #     for id in range(self.num_cf):
-    #         # action = all_action[0][id].cpu().numpy().astype(float)
-    #         cf = self.cfs[id]
-    #         # thrust = 43300.0
-    #         thrust = 45000.0
-    #         cf.cmdVel(action[0], -action[1], action[2], thrust)
-    #     self.timeHelper.sleepForRate(rate)
-
-    # give cmd and act
-    def cmd_act(self, action, rate=50):
-        if self.test:
-            return
-        for id in range(self.num_cf):
-            # action = all_action[0][id].cpu().numpy().astype(float)
-            cf = self.cfs[id]
-            # thrust = 43300.0
-            thrust = 45000.0
-            cf.cmdVel(action[0], -action[1], action[2], thrust)
         self.timeHelper.sleepForRate(rate)
 
     def init(self):

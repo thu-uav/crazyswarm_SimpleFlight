@@ -125,10 +125,6 @@ class FakeEnv(EnvBase):
         self.drone_state[..., 22:25] = vmap(quat_axis)(rot.unsqueeze(0), axis=1).squeeze()
         self.drone_state[..., 25:28] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()
 
-        # # old version
-        # self.drone_state[..., 13:16] = vmap(quat_axis)(rot.unsqueeze(0), axis=0).squeeze()
-        # self.drone_state[..., 16:19] = vmap(quat_axis)(rot.unsqueeze(0), axis=2).squeeze()
-
 
 class _AgentSpecView(Dict[str, AgentSpec]):
     def __init__(self, env: FakeEnv):
