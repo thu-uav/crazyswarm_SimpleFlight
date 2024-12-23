@@ -1,3 +1,6 @@
 [submodule "crazyflie/deps/crazyflie_tools"]
 	path = crazyflie/deps/crazyflie_tools
 	url = https://github.com/whoenig/crazyflie_tools.git
+[submodule "/home/jiayu/crazyswarm_SimpleFlight/crazyflie-firmware"]
+	path = /home/jiayu/crazyswarm_SimpleFlight/crazyflie-firmware
+	url = git@github.com:thu-uav/crazyflie-firmware.git

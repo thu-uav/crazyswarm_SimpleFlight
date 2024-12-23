@@ -1,4 +1,4 @@
-# Hardware Implementation of SimpleFlighe
+# Hardware Implementation of SimpleFlight
 
 ## Training code: https://github.com/thu-uav/SimpleFlight
 
