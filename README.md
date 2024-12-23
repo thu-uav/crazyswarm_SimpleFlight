@@ -19,6 +19,9 @@ ros2 launch crazyflie launch.py backend:=cflib
 ```
 
 In terminal 2, run the flight script.
+```
+cd crazyswarm_SimpleFlight/crazyflie_examples/crazyflie_examples
+```
 For Figure-eight trajectories with different speeds,
 ```
 python rl_track.py
