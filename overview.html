@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview &mdash; Crazyswarm2 1.0a1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=036e6a88"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Crazyswarm2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#explanation-per-package">Explanation per package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#crazyflie-server">Crazyflie server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation">Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-functionality-with-backends">Support functionality with backends</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">ROS 2 Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto.html">How To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Crazyswarm2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/overview.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="overview">
+<span id="id1"></span><h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
+<p>This page will explain the overview of the crazyflie ROS 2 nodes:</p>
+<img alt="_images/overview_nodes.jpg" src="_images/overview_nodes.jpg" />
+<section id="explanation-per-package">
+<h2>Explanation per package<a class="headerlink" href="#explanation-per-package" title="Link to this heading"></a></h2>
+<p>In the <a class="reference external" href="https://github.com/IMRCLab/crazyswarm2">source code of the Crazyswarm2 (Crazyflie ROS 2) project</a>, there are several packages that we will explain here:</p>
+<ul class="simple">
+<li><p><strong>crazyflie/</strong>: The package that contains the crazyflie server nodes and the crazyflies.yaml.</p></li>
+<li><p><strong>crazyflie_py/</strong>: The package that contains the python library that wraps around the ROS 2 services and topics that connects with the crazyflie server nodes.</p></li>
+<li><p><strong>crazyflie_examples/</strong>:  The package that contains examples of using the crazyflie ROS 2 package. See <a class="reference internal" href="tutorials.html#tutorials"><span class="std std-ref">ROS 2 Tutorials</span></a>.</p></li>
+<li><p><strong>crazyflie_interfaces/</strong>: The package that contains all msgs and srvs for the crazyflie ROS 2 project.</p></li>
+<li><p><strong>crazyflie_sim/</strong>: The package that contains our simulator.</p></li>
+</ul>
+</section>
+<section id="crazyflie-server">
+<h2>Crazyflie server<a class="headerlink" href="#crazyflie-server" title="Link to this heading"></a></h2>
+<p>The crazyflie server node connects multiple <a class="reference external" href="https://www.bitcraze.io/products/crazyflie-2-1/">Crazyflies</a> with on or more <a class="reference external" href="https://www.bitcraze.io/products/crazyradio-pa/">Crazyradio PA dongles</a>.</p>
+<p>It has three backends that you can choose from:</p>
+<ul class="simple">
+<li><p><strong>cpp</strong>: This is based on the <a class="reference external" href="https://github.com/bitcraze/crazyflie-link-cpp">crazyflie-link-cpp</a> on the lowest layer.</p></li>
+<li><p><strong>cflib</strong>: This is based on the <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/">crazyflie-lib-python</a> up until the logging, parameter, and command sending handling.</p></li>
+<li><p><strong>sim</strong>: Our simulator behaves like a regular backend, offering ROS 2 topics and services, see below for more details on the simulation.</p></li>
+</ul>
+<p>It handles several low level communication aspects with the Crazyflies:</p>
+<ul class="simple">
+<li><p><strong>Parameter to ROS 2 parameters handling</strong>: It receives the parameter ToC from the Crazyflie, transforms it into ROS 2 parameters, and sets the CF2 parameters based on the <em>crazyflies.yaml</em> input.</p></li>
+<li><p><strong>Logging to ROS 2 topics handling</strong>: The server sets up logblocks for data streaming in the crazyflie, and transforms the received variables into ROS 2 topics.</p></li>
+<li><p><strong>Run-time configuration</strong>: Both parameters and logging can be configured in run-time while the server is connected with the Crazyflies. Please check <a class="reference internal" href="usage.html#usage"><span class="std std-ref">Usage</span></a>.</p></li>
+</ul>
+<p>It also setups several flight command services:</p>
+<ul class="simple">
+<li><p><strong>Takeoff / Land / GoTo</strong>: With a single service command and a given height or coordinate, you can make the connected crazyflies take off, go to a position and land.</p></li>
+<li><p><strong>Upload / Start trajectory</strong>: You can upload a predefined trajectory and indicate if the Crazyflies need to start flying it.</p></li>
+<li><p><strong>Emergency</strong> : To turn off the motors in case something goes wrong.</p></li>
+<li><p><strong>/all or /cf2</strong> : The services are setup either for all crazyflies to respond to, or each individual crazyflie, depended on the prefix.</p></li>
+</ul>
+</section>
+<section id="simulation">
+<h2>Simulation<a class="headerlink" href="#simulation" title="Link to this heading"></a></h2>
+<p>The simulator uses the Crazyflie firmware as a software-in-the-loop (SIL). It provides the same ROS interface as the server and therefore can be used with C++ or Python user code.</p>
+<p>Currently, the desired setpoint is visualized in rviz (see <a class="reference internal" href="usage.html#usage"><span class="std std-ref">Usage</span></a>) or a simple physics-based simulator can be used.</p>
+</section>
+<section id="support-functionality-with-backends">
+<h2>Support functionality with backends<a class="headerlink" href="#support-functionality-with-backends" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Functionality</strong></p></th>
+<th class="head"><p><strong>Cpp</strong></p></th>
+<th class="head"><p><strong>CFlib</strong></p></th>
+<th class="head"><p><strong>Sim</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Parameters</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td colspan="4"><p>Logging</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>default: pose</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>default: scan</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>default: odom</p></li>
+</ul>
+</td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>custom</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>Add/Remove Srv</p></li>
+</ul>
+</td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Broadcasts</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p>Manual control</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>cmd_full_state</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>cmd_position</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>cmd_hover</p></li>
+</ul>
+</td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p>High-level control</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>takeoff/land</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>go_to</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>upload/start traj</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p>Positioning System</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>Motion Capture</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>Flow Deck</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p>LightHouse</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p>LPS</p></li>
+</ul>
+</td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021-2022, Wolfgang Hönig (IMRClab), Kimberly McGuire (Bitcraze AB) and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

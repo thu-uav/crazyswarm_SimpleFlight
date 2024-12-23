@@ -1,0 +1,226 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How To &mdash; Crazyswarm2 1.0a1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=036e6a88"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frequently Asked Questions" href="faq.html" />
+    <link rel="prev" title="ROS 2 Tutorials" href="tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Crazyswarm2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">ROS 2 Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How To</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tracking-non-robotic-objects">Tracking Non-Robotic Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging">Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-from-the-command-line">Usage from the command line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enabling-logblocks-at-runtime">Enabling Logblocks at runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-tests-locally">Run Tests Locally</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#collision-avoidance">Collision Avoidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generate-trajectories">Generate Trajectories</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Crazyswarm2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">How To</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/howto.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to">
+<span id="howtos"></span><h1>How To<a class="headerlink" href="#how-to" title="Link to this heading"></a></h1>
+<p>This page shows short how to’s for the advanced usage.</p>
+<section id="tracking-non-robotic-objects">
+<h2>Tracking Non-Robotic Objects<a class="headerlink" href="#tracking-non-robotic-objects" title="Link to this heading"></a></h2>
+<p>In some cases it can be useful to provide the position or pose of rigid bodies in the motion capture space to the robots.
+For example, consider a collision avoidance algorithms implemented on-board the firmware that requires to know
+the position of an obstacle. In that case, a “virtual” robot can be defined in crazyflies.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robots</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">obstacle</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">initial_position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">marker</span><span class="w">  </span><span class="c1"># see robot_types</span>
+<span class="w">        </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">255</span>
+
+<span class="nt">robot_types</span><span class="p">:</span>
+<span class="w">    </span><span class="c1"># Just a marker to track, not a robot to connect to</span>
+<span class="w">    </span><span class="nt">marker</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">connection</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">none</span>
+<span class="w">        </span><span class="nt">motion_capture</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">            </span><span class="nt">marker</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default_single_marker</span>
+<span class="w">            </span><span class="nt">dynamics</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+</pre></div>
+</div>
+<p>Here, the position of the obstacle will be tracked using the motion_capture_tracking ROS package. The resulting pose will be
+available via TF (named “obstacle”) and send to the firmware of the actual robots with id 255.</p>
+</section>
+<section id="debugging">
+<h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading"></a></h2>
+<p>If there is a crash (e.g., segmentation fault) in the crazyflie_server (C++ backend), you can find the stacktrace by using gdb.
+First, compile your code in debug mode, then run the launch file with the debug flag, which will open an xterm window.
+If you don’t have xterm installed, you can do so using <cite>sudo apt install xterm</cite>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install<span class="w"> </span>--cmake-args<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug
+ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie<span class="w"> </span>launch.py<span class="w"> </span>debug:<span class="o">=</span>True
+</pre></div>
+</div>
+</section>
+<section id="usage-from-the-command-line">
+<h2>Usage from the command line<a class="headerlink" href="#usage-from-the-command-line" title="Link to this heading"></a></h2>
+<p>The following shows a simple take off and land example</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>run<span class="w"> </span>crazyflie<span class="w"> </span>reboot<span class="w"> </span>--uri<span class="w"> </span>radio://0/80/2M/E7E7E7E706<span class="w"> </span>--mode<span class="w"> </span>sysoff
+<span class="o">[</span>terminal2<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie<span class="w"> </span>launch.py
+<span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>crazyflie_server<span class="w"> </span>cf1.params.commander.enHighLevel<span class="w"> </span><span class="m">1</span>
+<span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>crazyflie_server<span class="w"> </span>cf1.params.stabilizer.estimator<span class="w"> </span><span class="m">2</span>
+<span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>cf1/takeoff<span class="w"> </span>crazyflie_interfaces/srv/Takeoff<span class="w"> </span><span class="s2">&quot;{height: 0.5, duration: {sec: 2}}&quot;</span>
+<span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>cf1/land<span class="w"> </span>crazyflie_interfaces/srv/Land<span class="w"> </span><span class="s2">&quot;{height: 0.0, duration: {sec: 2}}&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="enabling-logblocks-at-runtime">
+<h2>Enabling Logblocks at runtime<a class="headerlink" href="#enabling-logblocks-at-runtime" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Runtime logblock enabling is currently only supported in the CFLIB backend of the server.</p>
+</div>
+<p>In the usage we explained how to enable log blocks at startup, but what if you would like to enable or disable logging blocks in runtime?
+This section will show how to do that by using services</p>
+<p>In one terminal run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie<span class="w"> </span>launch.py<span class="w"> </span>backend:<span class="o">=</span>cflib
+</pre></div>
+</div>
+<p>In another terminal after sourcing the right setup.bash files, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/cf2/add_logging<span class="w"> </span>crazyflie_interfaces/srv/AddLogging<span class="w"> </span><span class="s2">&quot;{topic_name: &#39;topic_test&#39;, frequency: 10, vars: [&#39;stateEstimate.x&#39;,&#39;stateEstimate.y&#39;,&#39;stateEstimate.z&#39;]}&quot;</span>
+ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/cf2/add_logging<span class="w"> </span>crazyflie_interfaces/srv/AddLogging<span class="w"> </span><span class="s2">&quot;{topic_name: &#39;pose&#39;, frequency: 10}&quot;</span>
+</pre></div>
+</div>
+<p>With ROS 2’s rqt you can look at the topics, or with ‘ROS 2 topics echo /cf2/pose’</p>
+<p>To close the logblocks again, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/cf2/remove_logging<span class="w"> </span>crazyflie_interfaces/srv/RemoveLogging<span class="w"> </span><span class="s2">&quot;{topic_name: &#39;topic_test&#39;}&quot;</span>
+ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/cf2/remove_logging<span class="w"> </span>crazyflie_interfaces/srv/RemoveLogging<span class="w"> </span><span class="s2">&quot;{topic_name: &#39;pose&#39;}&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="run-tests-locally">
+<h2>Run Tests Locally<a class="headerlink" href="#run-tests-locally" title="Link to this heading"></a></h2>
+<p>This requires some updated pip packages for testing, see <a class="reference external" href="https://docs.ros.org/en/humble/Installation/Alternatives/Ubuntu-Development-Setup.html">https://docs.ros.org/en/humble/Installation/Alternatives/Ubuntu-Development-Setup.html</a>, otherwise the reported failures will be inconsistent with CI.</p>
+<p>Then execute:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>colcon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--event-handlers<span class="o">=</span>console_cohesion+<span class="w"> </span>--return-code-on-test-failure<span class="w"> </span>--packages-select<span class="w"> </span>crazyflie_py
+</pre></div>
+</div>
+</section>
+<section id="collision-avoidance">
+<span id="id1"></span><h2>Collision Avoidance<a class="headerlink" href="#collision-avoidance" title="Link to this heading"></a></h2>
+<p>The official firmware has support for collision avoidance using the Buffered Voronoi Cell algorithm.
+It requires the use of a motion capture system (so that the positions of other drones are known) and can be enabled
+in the <cite>crazyflies.yaml</cite>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">all</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">firmware_params</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">colAv</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+</div>
+<p>or inside a Python script via:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">swarm</span> <span class="o">=</span> <span class="n">Crazyswarm</span><span class="p">()</span>
+<span class="n">allcfs</span> <span class="o">=</span> <span class="n">swarm</span><span class="o">.</span><span class="n">allcfs</span>
+<span class="n">allcfs</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s2">&quot;colAv.enable&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the algorithm might require tuning of its hyperparameters. Documention can be found at <a class="reference external" href="https://github.com/bitcraze/crazyflie-firmware/blob/dbb9df1137f11d4e7e3771c56d25a7137b5b69cc/src/modules/src/collision_avoidance.c#L348-L428">https://github.com/bitcraze/crazyflie-firmware/blob/dbb9df1137f11d4e7e3771c56d25a7137b5b69cc/src/modules/src/collision_avoidance.c#L348-L428</a>.</p>
+</section>
+<section id="generate-trajectories">
+<h2>Generate Trajectories<a class="headerlink" href="#generate-trajectories" title="Link to this heading"></a></h2>
+<p>Crazyswarm2 supports polynomial trajectories (8th order). These can be generated from waypoints, waypoint/time pairs, or optimization. Useful tools are available at <a class="reference external" href="https://github.com/whoenig/uav_trajectories">https://github.com/whoenig/uav_trajectories</a>, including scripts to visualize the resulting trajectories.</p>
+<p>For the multi-robot case, there is no easy to-use library, yet. One can use collision avoidance (see <a class="reference internal" href="#collision-avoidance"><span class="std std-ref">Collision Avoidance</span></a>) or preplan trajectories using <a class="reference external" href="https://github.com/IMRCLab/db-CBS">https://github.com/IMRCLab/db-CBS</a> or <a class="reference external" href="https://github.com/mjdebord/smoothener/tree/cylinders">https://github.com/mjdebord/smoothener/tree/cylinders</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorials.html" class="btn btn-neutral float-left" title="ROS 2 Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021-2022, Wolfgang Hönig (IMRClab), Kimberly McGuire (Bitcraze AB) and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

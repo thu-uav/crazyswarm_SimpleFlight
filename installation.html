@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; Crazyswarm2 1.0a1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=036e6a88"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview" href="overview.html" />
+    <link rel="prev" title="Crazyswarm2: A ROS 2 testbed for Aerial Robot Teams" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Crazyswarm2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#first-installation">First Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#updating">Updating</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">ROS 2 Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto.html">How To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Crazyswarm2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<p>Crazyswarm2 runs on <strong>Ubuntu Linux</strong> in one of the following configurations:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Ubuntu</p></td>
+<td><p>Python</p></td>
+<td><p>ROS 2</p></td>
+</tr>
+<tr class="row-even"><td><p>22.04</p></td>
+<td><p>3.10</p></td>
+<td><p>Humble, Iron</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference external" href="https://docs.microsoft.com/en-us/windows/wsl/about">Windows Subsystem for Linux (WSL)</a> is experimentally supported but you’ll have to use <a class="reference external" href="https://github.com/dorssel/usbipd-win/">usbipd-win</a>.
+This program will link the crazyradio directly with WS, but beware of bugs. Check out their <a class="reference external" href="https://github.com/dorssel/usbipd-win/wiki/WSL-support/">WSL connect guide</a>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Avoid using a virtual machine if possible: they add additional latency and might cause issues with the visualization tools.</p>
+</div>
+<section id="first-installation">
+<h2>First Installation<a class="headerlink" href="#first-installation" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p>If needed, install ROS 2 using the instructions at <a class="reference external" href="https://docs.ros.org/en/galactic/Installation.html">https://docs.ros.org/en/galactic/Installation.html</a> or <a class="reference external" href="https://docs.ros.org/en/humble/Installation.html">https://docs.ros.org/en/humble/Installation.html</a>.</p></li>
+<li><p>Install dependencies</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>libboost-program-options-dev<span class="w"> </span>libusb-1.0-0-dev
+pip3<span class="w"> </span>install<span class="w"> </span>rowan
+</pre></div>
+</div>
+<p>If you are planning to use the CFlib backend, do:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span>cflib<span class="w"> </span>transforms3d
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>ros-*DISTRO*-tf-transformations
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Set up your ROS 2 workspace</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>ros2_ws/src
+<span class="nb">cd</span><span class="w"> </span>ros2_ws/src
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/IMRCLab/crazyswarm2<span class="w"> </span>--recursive
+git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span>ros2<span class="w"> </span>--recursive<span class="w"> </span>https://github.com/IMRCLab/motion_capture_tracking.git
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Build your ROS 2 workspace</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>../
+colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>symlink-install allows you to edit Python and config files without running <cite>colcon build</cite> every time.</p>
+</div>
+</div></blockquote>
+</li>
+<li><p>Set up Crazyradio</p>
+<p>For the crazyradio, you need to setup usb rules in order to communicate with the Crazyflie. Find the instructions for that here <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/usb_permissions/">in Bitcraze’s USB permission guide for Linux</a>.</p>
+<p>You will also need to update the crazyradio firmware to the latest development branch to be able to use all features. For Crazyradio PA (1), <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyradio-firmware/master/building/building_flashing/">follow these instructions</a>. For Crazyradio 2, follow <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyradio-firmware/master/building/building_flashing/">these instuctions to build the firmware</a> and <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyradio2-firmware/main/building-and-flashing/flash//">these instuctions to flash it</a>.</p>
+</li>
+<li><p>Update the crazyflies</p>
+<p>If this is the first time handling crazyflies it is always good to start with <a class="reference external" href="https://www.bitcraze.io/documentation/tutorials/getting-started-with-crazyflie-2-x/">Bitcraze’s getting started guide</a>.</p>
+<p>You can update each crazyflie firmware to the latest release via <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-clients-python/master/userguides/userguide_client/#firmware-upgrade">these instructions of the Bitcraze Crazyflie client</a> .</p>
+<p>While you are at it, make sure that each crazyflie have an unique radio address which you can change in <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-clients-python/master/userguides/userguide_client/#firmware-configuration">the client via these instructions</a> .</p>
+</li>
+<li><p>Set up software-in-the-loop simulation (optional)</p>
+<blockquote>
+<div><p>This currently requires cloning the Crazyflie firmware and building the Python bindings manually. In a separate folder (not part of your ROS 2 workspace!),</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recursive<span class="w"> </span>https://github.com/bitcraze/crazyflie-firmware.git
+</pre></div>
+</div>
+<p>First follow <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/building-and-flashing/build/#build-python-bindings">the instructions to build the python bindings</a> from the bitcraze website. Afterwards, make sure that the bindings can be found in the python path:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;replace-with-path-to&gt;/crazyflie-firmware/build:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
+<p>If you are working from an older version of the crazyflie-firmware (before tag 2023.02), then you will need to point to main folder of the repo by removing the ‘/build’ part.</p>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="updating">
+<h2>Updating<a class="headerlink" href="#updating" title="Link to this heading"></a></h2>
+<p>You can update your local copy using the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>ros2_ws/src/crazyswarm2
+git<span class="w"> </span>pull
+git<span class="w"> </span>submodule<span class="w"> </span>sync
+git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+<span class="nb">cd</span><span class="w"> </span>../../
+colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Crazyswarm2: A ROS 2 testbed for Aerial Robot Teams" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021-2022, Wolfgang Hönig (IMRClab), Kimberly McGuire (Bitcraze AB) and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
