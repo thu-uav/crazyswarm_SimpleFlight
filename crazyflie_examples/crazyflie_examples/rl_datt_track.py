@@ -60,15 +60,14 @@ def main(cfg):
     max_thrust = 0.9
 
     # load takeoff checkpoint
-    takeoff_ckpt = "model/hover/Hover.pt"
-    # takeoff_ckpt = "model/1128_mlp.pt"
+    takeoff_ckpt = "model/Hover.pt"
     takeoff_env = FakeHover(cfg, connection=True, swarm=swarm)
     takeoff_agent_spec = takeoff_env.agent_spec["drone"]
     takeoff_policy = algos[cfg.algo.name.lower()](cfg.algo, agent_spec=takeoff_agent_spec, device=takeoff_env.device)
     takeoff_state_dict = torch.load(takeoff_ckpt)
     takeoff_policy.load_state_dict(takeoff_state_dict)
 
-    ckpt_name = "model/datt/datt_mixed_traj.pt"
+    ckpt_name = "model/deploy.pt"
     base_env = env = FakeDATT(cfg, connection=True, swarm=swarm)
 
     agent_spec = env.agent_spec["drone"]
@@ -91,8 +90,7 @@ def main(cfg):
 
         # update observation
         target_pos = takeoff_env.drone_state[..., :3]
-        # takeoff_env.tt_pargeos = target_pos
-        takeoff_env.target_pos = torch.tensor([[0.0, 0.0, 1.1]])
+        takeoff_env.target_pos = torch.tensor([[0.0, 0.0, 1.0]])
 
         takeoff_frame = []
         # takeoff
@@ -137,9 +135,7 @@ def main(cfg):
             last_time = cur_time
         print('real policy done')
 
-        # env.save_target_traj("8_1_demo.pt")
-        # takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
-        takeoff_env.target_pos = torch.tensor([[1.1, -0.7, 1.1]]) # 0.25T
+        takeoff_env.target_pos = torch.tensor([[0., 0., 1.0]])
         print('target', target_pos)
         # land
         for timestep in range(600):
@@ -180,7 +176,7 @@ def main(cfg):
 
     swarm.end_program()
     
-    torch.save(data_frame, "sim2real_data/datt/star_slow.pt")
+    # torch.save(data_frame, "sim2real_data/datt/star_slow.pt")
 
 if __name__ == "__main__":
     main()

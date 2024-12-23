@@ -30,7 +30,6 @@ class FakeTrack(FakeEnv):
             torch.tensor([0., 0., 0.], device=self.device) * torch.pi
         )
 
-
         self.traj_c_dist = D.Uniform(
             torch.tensor(-0., device=self.device),
             torch.tensor(0., device=self.device)
@@ -62,7 +61,6 @@ class FakeTrack(FakeEnv):
             torch.tensor(1.0, device=self.device)
         )
         self.origin = torch.tensor([0., 0., 1.], device=self.device)
-        # self.origin = torch.tensor([0.8, -1.1, 1.], device=self.device)
 
         self.traj_t0 = torch.ones(self.num_envs, device=self.device)
         self.traj_c = torch.zeros(self.num_envs, device=self.device)
