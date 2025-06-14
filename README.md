@@ -48,7 +48,7 @@ cf1:
 Please set the correct cf[id] and uri for your flight.
 
 ## Modify crazyflie parameters
-In ros2_ws/src/crazyswarm2/crazyflie/config/motion_capture.yaml, the parameters are as follows:
+In ros2_ws/src/crazyswarm_SimpleFlight/crazyflie/config/motion_capture.yaml, the parameters are as follows:
 ```
 /motion_capture_tracking:
   ros__parameters:

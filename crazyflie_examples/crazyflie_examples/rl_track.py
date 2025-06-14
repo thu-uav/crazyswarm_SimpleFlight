@@ -9,17 +9,17 @@ from functorch import vmap
 from omegaconf import OmegaConf
 
 from omni_drones import CONFIG_PATH #, init_simulation_app
-from torchrl.collectors import SyncDataCollector 
-from omni_drones.utils.torchrl import AgentSpec
-from omni_drones.utils.torchrl.transforms import (
-    FromMultiDiscreteAction, 
-    FromDiscreteAction,
-    ravel_composite,
-    VelController,
-    AttitudeController,
-    RateController,
-    History
-)
+# from torchrl.collectors import SyncDataCollector 
+# from omni_drones.utils.torchrl import AgentSpec
+# from omni_drones.utils.torchrl.transforms import (
+#     FromMultiDiscreteAction, 
+#     FromDiscreteAction,
+#     ravel_composite,
+#     VelController,
+#     AttitudeController,
+#     RateController,
+#     History
+# )
 from omni_drones.learning.ppo import PPORNNPolicy, PPOPolicy
 from omni_drones.learning import (
     MAPPOPolicy, 
